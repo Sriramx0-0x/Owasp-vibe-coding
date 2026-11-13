@@ -542,3 +542,69 @@ input::placeholder { color: #94a3b8; }
   .time-badge { display: none; }
 }
 
+
+/* Contact Organizer */
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 22px;
+}
+.contact-item {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 16px; border-radius: 12px;
+  background: var(--surface-soft); border: 1px solid var(--line);
+  transition: var(--transition-fast);
+}
+.contact-item:hover { border-color: var(--accent); background: #f8fafc; transform: translateY(-1px); }
+.contact-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: var(--accent-soft); color: var(--accent);
+  display: grid; place-items: center; font-size: 1.15rem;
+  flex-shrink: 0;
+}
+.contact-label { font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
+.contact-value { font-size: 0.92rem; color: var(--ink); font-weight: 600; }
+.contact-form { display: grid; gap: 16px; max-width: 520px; }
+
+/* Calendar */
+.calendar-wrap { padding: 4px 0 0 0; }
+.calendar-controls {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 24px; border-bottom: 1px solid var(--line);
+  background: #fafafa;
+}
+.cal-month-year {
+  font-weight: 800; font-size: 1.1rem; color: var(--ink);
+  letter-spacing: -0.4px;
+}
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0;
+  padding: 0 24px 26px 24px;
+}
+.cal-day {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 14px 8px; font-size: 0.86rem; color: var(--ink-soft);
+  border: 1px solid transparent; border-radius: 10px;
+  transition: var(--transition-fast); position: relative; min-height: 90px;
+}
+.cal-day.empty { background: transparent; border-color: transparent; color: transparent; }
+.cal-day.today { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 800; }
+.cal-day-number { font-weight: 700; margin-bottom: 8px; font-size: 0.95rem; }
+.cal-reminders { display: flex; flex-direction: column; gap: 4px; font-size: 0.72rem; }
+.cal-reminder {
+  padding: 3px 8px; border-radius: 6px; font-weight: 700;
+  background: var(--surface); border: 1px solid var(--line);
+  color: var(--ink); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70px;
+}
+.cal-reminder.shift { background: var(--success-soft); color: var(--success); border-color: rgba(5,150,105,0.16); }
+.cal-reminder.general { background: var(--info-soft); color: var(--info); border-color: rgba(37,99,235,0.16); }
+
+/* Responsive contact & calendar */
+@media (max-width: 900px) {
+  .contact-grid { grid-template-columns: 1fr; }
+  .calendar-grid { padding: 0 16px 20px 16px; }
+  .cal-day { padding: 10px 6px; min-height: 70px; }
+}

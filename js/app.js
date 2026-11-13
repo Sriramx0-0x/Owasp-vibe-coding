@@ -568,4 +568,224 @@
   load();
   showView('dashboard');
   observeReveals();
+
+  /* ---------- Reminders storage ---------- */
+  const REMINDER_KEY = 'volunteerhub_reminders_v1';
+  let reminders = [];
+  function loadReminders() {
+    const raw = localStorage.getItem(REMINDER_KEY);
+    reminders = raw ? JSON.parse(raw) : [];
+  }
+  function saveReminders() { localStorage.setItem(REMINDER_KEY, JSON.stringify(reminders)); }
+
+  /* ---------- Contact form ---------- */
+  document.getElementById('contactForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const form = new FormData(e.target);
+    const name = form.get('name').trim();
+    const email = form.get('email').trim();
+    const message = form.get('message').trim();
+    if (!name || !email || !message) {
+      toast({ type: 'err', title: 'Incomplete form', desc: 'Please fill in all fields.' });
+      return;
+    }
+    const contactMsg = document.getElementById('contactMsg');
+    contactMsg.innerHTML = '<div class="msg ok">✓ Message sent to organizer successfully.</div>';
+    e.target.reset();
+    setTimeout(() => { contactMsg.innerHTML = ''; }, 4000);
+    toast({ type: 'ok', title: 'Message sent', desc: 'Your message has been delivered to the organizer.' });
+    addActivity('Contact form submitted by ' + escapeHtml(name), 'info');
+  });
+
+  /* ---------- Calendar ---------- */
+  let calDate = new Date();
+  function calMonthLabel(d) { return d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' }); }
+  function renderCalendar() {
+    document.getElementById('calMonthYear').textContent = calMonthLabel(calDate);
+    const grid = document.getElementById('calendarGrid');
+    grid.innerHTML = '';
+
+    const year = calDate.getFullYear();
+    const month = calDate.getMonth();
+
+    // Day headers
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    days.forEach(day => {
+      const h = document.createElement('div');
+      h.className = 'cal-day';
+      h.style.fontWeight = '800';
+      h.style.fontSize = '0.75rem';
+      h.style.color = '#94a3b8';
+      h.style.textTransform = 'uppercase';
+      h.style.padding = '12px 8px';
+      h.style.borderBottom = '2px solid ' + getComputedStyle(document.documentElement).getPropertyValue('--line').trim();
+      h.textContent = day;
+      grid.appendChild(h);
+    });
+
+    // Days of month
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    for (let i = 0; i < firstDay; i++) {
+      const empty = document.createElement('div');
+      empty.className = 'cal-day empty';
+      grid.appendChild(empty);
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const cell = document.createElement('div');
+      cell.className = 'cal-day';
+      const cellDate = new Date(year, month, d);
+      cellDate.setHours(0, 0, 0, 0);
+      const isToday = cellDate.getTime() === today.getTime();
+      if (isToday) cell.classList.add('today');
+
+      const num = document.createElement('div');
+      num.className = 'cal-day-number';
+      num.textContent = d;
+      cell.appendChild(num);
+
+      const remindersForDay = reminders.filter(r => {
+        const rd = new Date(r.date);
+        rd.setHours(0, 0, 0, 0);
+        return rd.getTime() === cellDate.getTime();
+      });
+
+      const remWrap = document.createElement('div');
+      remWrap.className = 'cal-reminders';
+      remindersForDay.slice(0, 3).forEach(r => {
+        const chip = document.createElement('div');
+        chip.className = 'cal-reminder ' + (r.shiftId ? 'shift' : 'general');
+        chip.textContent = r.title;
+        chip.title = r.description || '';
+        remWrap.appendChild(chip);
+      });
+      if (remindersForDay.length > 3) {
+        const more = document.createElement('div');
+        more.className = 'cal-reminder';
+        more.textContent = '+ ' + (remindersForDay.length - 3) + ' more';
+        remWrap.appendChild(more);
+      }
+      cell.appendChild(remWrap);
+      grid.appendChild(cell);
+    }
+  }
+
+  document.getElementById('calPrev').addEventListener('click', () => {
+    calDate = new Date(calDate.getFullYear(), calDate.getMonth() - 1, 1);
+    renderCalendar();
+  });
+  document.getElementById('calNext').addEventListener('click', () => {
+    calDate = new Date(calDate.getFullYear(), calDate.getMonth() + 1, 1);
+    renderCalendar();
+  });
+
+  /* Add Reminder Modal */
+  const addReminderModal = document.getElementById('addReminderModal');
+  const reminderBackdrop = document.getElementById('reminderBackdrop');
+  const openAddReminder = document.getElementById('openAddReminder');
+  const closeReminder = document.getElementById('closeReminder');
+  const cancelReminder = document.getElementById('cancelReminder');
+  const addReminderForm = document.getElementById('addReminderForm');
+  const reminderShiftSelect = document.getElementById('addReminderForm').querySelector('select[name="shiftId"]');
+
+  function openReminderModal() {
+    reminderShiftSelect.innerHTML = '<option value="">— None —</option>';
+    shifts.forEach(s => {
+      const o = document.createElement('option');
+      o.value = s.id;
+      o.textContent = s.role + ' — ' + fmtDate(s.date);
+      reminderShiftSelect.appendChild(o);
+    });
+    addReminderModal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+  }
+  function closeReminderModal() {
+    addReminderModal.style.display = 'none';
+    document.body.style.overflow = '';
+    addReminderForm.reset();
+  }
+
+  openAddReminder.addEventListener('click', openReminderModal);
+  closeReminder.addEventListener('click', closeReminderModal);
+  cancelReminder.addEventListener('click', closeReminderModal);
+  reminderBackdrop.addEventListener('click', closeReminderModal);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && addReminderModal.style.display === 'block') closeReminderModal();
+  });
+
+  addReminderForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const form = new FormData(addReminderForm);
+    const title = form.get('title').trim();
+    const date = form.get('date');
+    const time = form.get('time');
+    const description = form.get('description').trim();
+    const shiftId = form.get('shiftId') || '';
+
+    if (!title || !date || !time) {
+      toast({ type: 'err', title: 'Incomplete form', desc: 'Please fill in title, date, and time.' });
+      return;
+    }
+
+    reminders.push({
+      id: 'r' + Date.now(),
+      title, date, time, description, shiftId
+    });
+    saveReminders();
+    closeReminderModal();
+    renderCalendar();
+    renderDashboard();
+    toast({ type: 'ok', title: 'Reminder created', desc: '"' + escapeHtml(title) + '" scheduled.' });
+    addActivity('Calendar reminder: ' + escapeHtml(title), 'ok');
+  });
+
+  /* ---------- Navigation update (calendar view) ---------- */
+  const origShowView = showView;
+  showView = function (id) {
+    // include calendar
+    const titles = {
+      dashboard: ['Overview', 'Staffing health across all role shifts at a glance.'],
+      shifts: ['Role Shifts', 'Define roles, timings, locations, and required headcount.'],
+      signup: ['Volunteer Sign Up', 'Register for an open shift with available spots.'],
+      checkin: ['Check In', 'Mark signed-up volunteers as present at the event.'],
+      settings: ['Data & Reset', 'Seed, export, or reset your volunteer data.'],
+      calendar: ['Event Calendar', 'Manage reminders and upcoming event schedules.']
+    };
+    const views = document.querySelectorAll('.view');
+    views.forEach(v => {
+      v.style.display = 'none';
+      v.classList.remove('visible');
+    });
+    const target = document.getElementById('view-' + id);
+    if (target) {
+      target.style.display = 'block';
+      requestAnimationFrame(() => target.classList.add('visible'));
+    }
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.getAttribute('data-view') === id));
+    const [t, s] = titles[id] || titles.dashboard;
+    document.getElementById('pageTitle').textContent = t;
+    document.getElementById('pageSub').textContent = s;
+    if (window.innerWidth <= 900) sidebar.classList.remove('open');
+
+    if (id === 'dashboard') renderDashboard();
+    if (id === 'shifts') renderShifts();
+    if (id === 'signup') renderSignup();
+    if (id === 'checkin') renderCheckIn();
+    if (id === 'calendar') renderCalendar();
+  };
+
+  /* ---------- Keyboard shortcut 6 = calendar ---------- */
+  const origKeydown = document.onkeydown;
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+    const map = { '1': 'dashboard', '2': 'shifts', '3': 'signup', '4': 'checkin', '5': 'settings', '6': 'calendar' };
+    if (map[e.key]) showView(map[e.key]);
+  });
+
+  /* ---------- Boot (reminders) ---------- */
+  loadReminders();
 })();

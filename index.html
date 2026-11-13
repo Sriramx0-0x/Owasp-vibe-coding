@@ -59,6 +59,11 @@
         <span class="nav-label">Data & Reset</span>
         <span class="nav-dot"></span>
       </a>
+      <a href="#calendar" class="nav-item" data-view="calendar" id="nav-calendar">
+        <span class="nav-icon">📅</span>
+        <span class="nav-label">Calendar</span>
+        <span class="nav-dot"></span>
+      </a>
     </nav>
     <div class="nav-footer">
       <div class="user-card">
@@ -207,6 +212,59 @@
               </div>
               <div class="activity-list" id="activityList"></div>
             </div>
+          </div>
+        </div>
+
+        <!-- Contact Organizer -->
+        <div class="card reveal">
+          <div class="card-header">
+            <div class="card-title-group">
+              <h2 class="card-title">Contact Organizer</h2>
+              <p class="card-sub">Get in touch with the event admin team.</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="contact-grid reveal">
+              <div class="contact-item">
+                <div class="contact-icon">✉</div>
+                <div>
+                  <div class="contact-label">Email</div>
+                  <div class="contact-value">organizer@eventhub.com</div>
+                </div>
+              </div>
+              <div class="contact-item">
+                <div class="contact-icon">📞</div>
+                <div>
+                  <div class="contact-label">Phone</div>
+                  <div class="contact-value">+1 (555) 000-0000</div>
+                </div>
+              </div>
+              <div class="contact-item">
+                <div class="contact-icon">📍</div>
+                <div>
+                  <div class="contact-label">Location</div>
+                  <div class="contact-value">Main Hall, Event Center</div>
+                </div>
+              </div>
+            </div>
+            <form id="contactForm" class="contact-form reveal">
+              <div class="form-group">
+                <label>Your Name</label>
+                <input type="text" name="name" required placeholder="e.g. Alex Rivera" />
+              </div>
+              <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" required placeholder="alex@example.com" />
+              </div>
+              <div class="form-group">
+                <label>Message</label>
+                <textarea name="message" rows="4" required placeholder="How can we help you?"></textarea>
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Send Message</button>
+              </div>
+              <div id="contactMsg" class="msg"></div>
+            </form>
           </div>
         </div>
       </section>
@@ -364,8 +422,78 @@
           <div class="keyboard-hint reveal">
             <p class="hint-label">Keyboard shortcuts</p>
             <div class="keys">
-              <kbd>1</kbd> Dashboard · <kbd>2</kbd> Shifts · <kbd>3</kbd> Sign Up · <kbd>4</kbd> Check In · <kbd>5</kbd> Settings · <kbd>Esc</kbd> Close
+              <kbd>1</kbd> Dashboard · <kbd>2</kbd> Shifts · <kbd>3</kbd> Sign Up · <kbd>4</kbd> Check In · <kbd>5</kbd> Settings · <kbd>6</kbd> Calendar · <kbd>Esc</kbd> Close
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CALENDAR -->
+      <section class="view reveal" id="view-calendar" style="display:none">
+        <div class="section-head reveal">
+          <h2 class="section-title">Event Calendar</h2>
+          <p class="section-sub">Manage reminders and upcoming event schedules.</p>
+        </div>
+
+        <div class="card reveal">
+          <div class="card-header">
+            <div class="card-title-group">
+              <h2 class="card-title">Upcoming Reminders</h2>
+              <p class="card-sub">Track important dates for your volunteer event.</p>
+            </div>
+            <button class="btn btn-primary" id="openAddReminder">+ Add Reminder</button>
+          </div>
+          <div class="calendar-wrap reveal">
+            <div class="calendar-controls">
+              <button class="btn btn-secondary btn-sm" id="calPrev">‹</button>
+              <span class="cal-month-year" id="calMonthYear">November 2026</span>
+              <button class="btn btn-secondary btn-sm" id="calNext">›</button>
+            </div>
+            <div class="calendar-grid" id="calendarGrid"></div>
+          </div>
+        </div>
+
+        <!-- Add Reminder Modal -->
+        <div class="modal" id="addReminderModal">
+          <div class="modal-backdrop" id="reminderBackdrop"></div>
+          <div class="modal-panel reveal">
+            <div class="modal-header">
+              <div class="modal-title-group">
+                <h3 class="modal-title">Create Reminder</h3>
+                <p class="modal-sub">Set a reminder for an event or shift.</p>
+              </div>
+              <button class="btn-close" id="closeReminder">✕</button>
+            </div>
+            <form id="addReminderForm" class="form reveal">
+              <div class="form-group">
+                <label>Reminder Title</label>
+                <input type="text" name="title" required placeholder="e.g. Volunteer Briefing" />
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Date</label>
+                  <input type="date" name="date" required />
+                </div>
+                <div class="form-group">
+                  <label>Time</label>
+                  <input type="time" name="time" required />
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Description</label>
+                <textarea name="description" rows="3" placeholder="Optional details…"></textarea>
+              </div>
+              <div class="form-group">
+                <label>Related Shift (optional)</label>
+                <select name="shiftId">
+                  <option value="">— None —</option>
+                </select>
+              </div>
+              <div class="form-actions">
+                <button type="button" class="btn btn-secondary" id="cancelReminder">Cancel</button>
+                <button type="submit" class="btn btn-primary">Create Reminder</button>
+              </div>
+            </form>
           </div>
         </div>
       </section>
