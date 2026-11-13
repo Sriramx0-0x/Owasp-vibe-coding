@@ -777,22 +777,22 @@
       idCardRole.textContent = 'Checked-in Volunteer';
       idCardShift.textContent = activeShift.role + ' • ' + activeShift.date;
       idCardStatus.textContent = 'Checked In';
-      idCardStatusDot.textContent = '● Checked In';
-      idCardStatusDot.style.color = 'var(--success)';
+      idCardStatusDot.style.backgroundColor = '#34d399';
+      idCardStatusDot.style.boxShadow = '0 0 0 4px rgba(52, 211, 153, 0.3)';
     } else if (activeShift) {
       idCardName.textContent = 'No volunteer checked in';
       idCardRole.textContent = 'Event Staff';
       idCardShift.textContent = activeShift.role + ' • ' + activeShift.date;
       idCardStatus.textContent = 'Available';
-      idCardStatusDot.textContent = '○ Available';
-      idCardStatusDot.style.color = 'var(--muted)';
+      idCardStatusDot.style.backgroundColor = '#94a3b8';
+      idCardStatusDot.style.boxShadow = '0 0 0 4px rgba(148, 163, 184, 0.2)';
     } else {
       idCardName.textContent = '—';
       idCardRole.textContent = '—';
       idCardShift.textContent = '—';
       idCardStatus.textContent = 'No shifts yet';
-      idCardStatusDot.textContent = '○ Idle';
-      idCardStatusDot.style.color = 'var(--muted)';
+      idCardStatusDot.style.backgroundColor = '#94a3b8';
+      idCardStatusDot.style.boxShadow = '0 0 0 4px rgba(148, 163, 184, 0.2)';
     }
   }
 

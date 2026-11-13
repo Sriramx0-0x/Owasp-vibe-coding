@@ -134,25 +134,28 @@
           <div class="id-card-popup" id="idCardPopup">
             <button class="id-card-close" id="idCardClose" aria-label="Close ID Card">✕</button>
             <div class="id-card">
-              <div class="id-card-glow"></div>
-              <div class="id-card-content">
-                <div class="id-card-header">
-                  <div class="id-card-avatar">VH</div>
-                  <div class="id-card-info">
-                    <h3>Event Volunteer Pass</h3>
-                    <p>VolunteerHub • Event Staff</p>
+              <div class="id-card-header-band">
+                <div class="id-card-event">EVENT VOLUNTEER PASS</div>
+                <div class="id-card-event-sub">VolunteerHub • Event Staff</div>
+              </div>
+              <div class="id-card-main">
+                <div class="id-card-avatar">VH</div>
+                <div class="id-card-details">
+                  <div class="id-card-name" id="idCardName">—</div>
+                  <div class="id-card-role" id="idCardRole">—</div>
+                  <div class="id-card-shift" id="idCardShift">—</div>
+                  <div class="id-card-status-row">
+                    <span class="id-card-status-label">Status</span>
+                    <span class="id-card-status-value" id="idCardStatus">Pending</span>
                   </div>
-                  <div class="id-card-badge">Staff</div>
                 </div>
-                <div class="id-card-body">
-                  Name: <strong id="idCardName">—</strong><br />
-                  Role: <strong id="idCardRole">—</strong><br />
-                  Shift: <strong id="idCardShift">—</strong><br />
-                  Status: <strong id="idCardStatus">Pending</strong>
-                </div>
-                <div class="id-card-footer">
-                  <div class="id-card-qr">VH</div>
-                  <div class="id-card-status-indicator" id="idCardStatusDot">● Active</div>
+              </div>
+              <div class="id-card-divider"></div>
+              <div class="id-card-bottom">
+                <div class="id-card-qr">VH</div>
+                <div class="id-card-footer-info">
+                  <div class="id-card-valid">Valid for Event Day</div>
+                  <div class="id-card-status-dot" id="idCardStatusDot"></div>
                 </div>
               </div>
             </div>
