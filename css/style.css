@@ -1870,3 +1870,22 @@ input::placeholder { color: #64748b; }
   background: rgba(255,255,255,0.05) !important;
 }
 
+
+/* ============ Role Shifts table - brighten first column ============ */
+.card .table-wrap tr td:first-child {
+  color: #fff !important;
+  font-weight: 800 !important;
+}
+
+.card .table-wrap td {
+  color: #e2e8f0 !important;
+}
+
+.card .table-wrap th {
+  color: #94a3b8 !important;
+}
+
+.card .table-wrap tr:hover td {
+  background: rgba(255,255,255,0.03) !important;
+}
+
