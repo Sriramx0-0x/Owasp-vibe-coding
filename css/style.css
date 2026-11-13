@@ -1910,3 +1910,77 @@ table tr th,
   font-weight: 700 !important;
 }
 
+
+/* ============ Role Shifts table - FORCE VISIBLE TEXT ============ */
+#shiftsTable table,
+#shiftsTable tr,
+#shiftsTable th,
+#shiftsTable td {
+  color: #000000 !important;
+  background: #ffffff !important;
+  border-color: #000000 !important;
+}
+
+#shiftsTable tr td:first-child {
+  color: #000000 !important;
+  font-weight: 900 !important;
+  background: #ffffff !important;
+}
+
+#shiftsTable tr td {
+  color: #000000 !important;
+  background: #ffffff !important;
+}
+
+#shiftsTable tr th {
+  color: #000000 !important;
+  background: #e2e8f0 !important;
+  font-weight: 900 !important;
+}
+
+#shiftsTable tr {
+  background: #ffffff !important;
+  border-bottom: 2px solid #000000 !important;
+}
+
+#shiftsTable table {
+  background: #ffffff !important;
+  border-collapse: collapse !important;
+}
+
+#statusTable table,
+#statusTable tr,
+#statusTable th,
+#statusTable td {
+  color: #000000 !important;
+  background: #ffffff !important;
+  border-color: #000000 !important;
+}
+
+#statusTable tr td:first-child {
+  color: #000000 !important;
+  font-weight: 900 !important;
+  background: #ffffff !important;
+}
+
+#statusTable tr td {
+  color: #000000 !important;
+  background: #ffffff !important;
+}
+
+#statusTable tr th {
+  color: #000000 !important;
+  background: #e2e8f0 !important;
+  font-weight: 900 !important;
+}
+
+#statusTable tr {
+  background: #ffffff !important;
+  border-bottom: 2px solid #000000 !important;
+}
+
+#statusTable table {
+  background: #ffffff !important;
+  border-collapse: collapse !important;
+}
+
