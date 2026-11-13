@@ -1,7 +1,8 @@
-/* VolunteerHub — MVP Application Logic (Polished UI/UX + Calendar) */
+/* VolunteerHub — MVP Application Logic */
 (function () {
   const STORAGE_KEY = 'volunteerhub_shifts_v1';
   const REMINDER_KEY = 'volunteerhub_reminders_v1';
+  const COMMENT_KEY = 'volunteerhub_comments_v1';
 
   const SEED_SHIFTS = [
     { id: 's1', role: 'Registration Desk', date: '2026-11-15', startTime: '08:00', endTime: '12:00', location: 'Main Lobby - Hall A', required: 4, volunteers: [] },
@@ -13,7 +14,7 @@
 
   let shifts = [];
   let reminders = [];
-  let activityLog = [];
+  let comments = [];
   let currentFilter = 'all';
   let calDate = new Date();
 
@@ -30,11 +31,19 @@
   }
   function saveReminders() { localStorage.setItem(REMINDER_KEY, JSON.stringify(reminders)); }
 
+  function loadComments() {
+    const raw = localStorage.getItem(COMMENT_KEY);
+    comments = raw ? JSON.parse(raw) : [];
+  }
+  function saveComments() { localStorage.setItem(COMMENT_KEY, JSON.stringify(comments)); }
+
   function addActivity(text, type = 'info') {
     activityLog.unshift({ text, type, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
     if (activityLog.length > 50) activityLog.pop();
     renderActivityList();
   }
+
+  let activityLog = [];
 
   function escapeHtml(text) {
     const d = document.createElement('div');
@@ -145,7 +154,8 @@
     signup: ['Volunteer Sign Up', 'Register for an open shift with available spots.'],
     checkin: ['Check In', 'Mark signed-up volunteers as present at the event.'],
     settings: ['Data & Reset', 'Seed, export, or reset your volunteer data.'],
-    calendar: ['Event Calendar', 'Manage reminders and upcoming event schedules.']
+    calendar: ['Event Calendar', 'Manage reminders and upcoming event schedules.'],
+    comments: ['Volunteer Feedback', 'Share updates and feedback with other volunteers.']
   };
 
   function showView(id) {
@@ -184,6 +194,7 @@
     document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
   }
 
+
   function renderDashboard() {
     const total = shifts.length;
     const signedUp = shifts.reduce((a, s) => a + s.volunteers.length, 0);
@@ -197,7 +208,11 @@
     document.getElementById('statUnderstaffed').textContent = understaffed;
     document.getElementById('miniTotal').textContent = total;
     document.getElementById('miniSigned').textContent = signedUp;
-    document.getElementById('liveCount').textContent = signedUp + ' volunteers';
+    document.getElementById('liveCount').textContent = signedUp;
+    const liveCountEl = document.getElementById('liveCount');
+    const btn = document.getElementById('badgeToggle');
+    if (btn) btn.querySelector('#liveCount').textContent = signedUp;
+    renderBadgeMenu();
 
     const totalCap = shifts.reduce((a, s) => a + s.required, 0) || 1;
     const fillPct = Math.round((signedUp / totalCap) * 100);
@@ -271,6 +286,24 @@
     }).join('');
   }
 
+  function renderBadgeMenu() {
+    const list = document.getElementById('badgeMenuList');
+    if (!list) return;
+    let checkedIn = [];
+    shifts.forEach(s => {
+      s.volunteers.forEach(v => {
+        if (v.checkedIn) {
+          checkedIn.push({ name: v.name, role: s.role });
+        }
+      });
+    });
+    if (checkedIn.length === 0) {
+      list.innerHTML = '<div class="badge-menu-empty">No volunteers checked in</div>';
+    } else {
+      list.innerHTML = checkedIn.map(c => '<div class="badge-menu-item"><div class="badge-menu-item-name">' + escapeHtml(c.name) + '</div><div class="badge-menu-item-role">' + escapeHtml(c.role) + '</div></div>').join('');
+    }
+  }
+
   document.querySelectorAll('.chip').forEach(c => {
     c.addEventListener('click', () => {
       document.querySelectorAll('.chip').forEach(x => x.classList.remove('chip-active'));
@@ -279,6 +312,7 @@
       renderDashboard();
     });
   });
+
 
   function renderShifts() {
     const wrap = document.getElementById('shiftsTable');
@@ -390,6 +424,7 @@
     addActivity(name + ' signed up for ' + escapeHtml(shift.role), 'ok');
   });
 
+
   function renderCheckIn() {
     const sel = document.getElementById('checkinShiftSelect');
     sel.innerHTML = '<option value="">— Choose a shift —</option>';
@@ -434,13 +469,30 @@
     const v = shift.volunteers.find(x => x.id === volId);
     if (!v || v.checkedIn) return;
     v.checkedIn = true;
-    v.checkedInAt = new Date().toISOString();
+    const checkinTime = new Date();
+    v.checkedInAt = checkinTime.toISOString();
     save();
     checkinShiftSelect.dispatchEvent(new Event('change'));
     renderDashboard(); renderShifts();
+    const timeStr = checkinTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     toast({ type: 'ok', title: 'Checked in', desc: escapeHtml(v.name) + ' is now present for "' + escapeHtml(shift.role) + '".' });
-    addActivity(v.name + ' checked in for ' + escapeHtml(shift.role), 'ok');
+    addActivity(v.name + ' checked in for ' + escapeHtml(shift.role) + ' at ' + timeStr, 'ok');
     confetti();
+  };
+
+  window.appCheckOut = function (shiftId, volId) {
+    const shift = shifts.find(s => s.id === shiftId);
+    const v = shift.volunteers.find(x => x.id === volId);
+    if (!v || !v.checkedIn) return;
+    v.checkedIn = false;
+    const checkoutTime = new Date();
+    v.checkedOutAt = checkoutTime.toISOString();
+    save();
+    checkinShiftSelect.dispatchEvent(new Event('change'));
+    renderDashboard(); renderShifts();
+    const timeStr = checkoutTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    toast({ type: 'info', title: 'Checked out', desc: escapeHtml(v.name) + ' has checked out from "' + escapeHtml(shift.role) + '" at ' + timeStr + '.' });
+    addActivity(v.name + ' checked out from ' + escapeHtml(shift.role) + ' at ' + timeStr, 'info');
   };
 
   document.getElementById('contactForm').addEventListener('submit', (e) => {
@@ -482,6 +534,7 @@
     URL.revokeObjectURL(url);
     toast({ type: 'info', title: 'Exported', desc: 'volunteerhub-data.json saved to your downloads.' });
   });
+
 
   function renderCalendar() {
     document.getElementById('calMonthYear').textContent = calDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
@@ -555,148 +608,6 @@
     toast({ type: 'info', title: 'Reminder deleted', desc: 'The reminder has been removed.' });
   };
 
-
-  document.addEventListener('keydown', (e) => {
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
-    const map = { '1': 'dashboard', '2': 'shifts', '3': 'signup', '4': 'checkin', '5': 'settings', '6': 'calendar' };
-    if (map[e.key]) showView(map[e.key]);
-  });
-
-  load();
-  loadReminders();
-  showView('dashboard');
-  observeReveals();
-
-  /* ---------- Auto-apply lusion classes to all cards & titles ---------- */
-  document.querySelectorAll('.card').forEach(c => {
-    if (!c.classList.contains('lusion-card')) c.classList.add('lusion-card');
-  });
-  document.querySelectorAll('.section-title').forEach(t => {
-    if (!t.classList.contains('lusion-title')) t.classList.add('lusion-title');
-  });
-  document.querySelectorAll('.btn-primary').forEach(b => {
-    if (!b.classList.contains('lusion-btn')) b.classList.add('lusion-btn');
-  });
-  document.getElementById('pageTitle') && (document.getElementById('pageTitle').classList.add('text-gradient'));
-
-  /* ---------- Check Out ---------- */
-  window.appCheckOut = function (shiftId, volId) {
-    const shift = shifts.find(s => s.id === shiftId);
-    const v = shift.volunteers.find(x => x.id === volId);
-    if (!v || !v.checkedIn) return;
-    v.checkedIn = false;
-    v.checkedOutAt = new Date().toISOString();
-    save();
-    checkinShiftSelect.dispatchEvent(new Event('change'));
-    renderDashboard();
-    renderShifts();
-    toast({ type: 'info', title: 'Checked out', desc: escapeHtml(v.name) + ' has checked out from "' + escapeHtml(shift.role) + '".' });
-    addActivity(v.name + ' checked out from ' + escapeHtml(shift.role), 'info');
-  };
-
-  /* ---------- Comments (Reddit + GitHub style) ---------- */
-  let comments = [];
-  const COMMENT_KEY = 'volunteerhub_comments_v1';
-
-  function loadComments() {
-    const raw = localStorage.getItem(COMMENT_KEY);
-    comments = raw ? JSON.parse(raw) : [];
-  }
-  function saveComments() { localStorage.setItem(COMMENT_KEY, JSON.stringify(comments)); }
-
-  function renderComments() {
-    const list = document.getElementById('commentList');
-    if (!list) return;
-    const sorted = [...comments].sort((a, b) => b.score - a.score || new Date(b.time) - new Date(a.time));
-    if (sorted.length === 0) {
-      list.innerHTML = '<div class="empty-state" style="padding:28px 16px;text-align:center"><span class="emoji" style="font-size:2.5rem">💬</span><h3 style="font-size:1.1rem">No comments yet</h3><p class="small">Be the first to share an update about the event.</p></div>';
-      return;
-    }
-    list.innerHTML = sorted.map(c => {
-      const upClass = c.userVote === 1 ? 'voted' : '';
-      const downClass = c.userVote === -1 ? 'voted' : '';
-      const timeAgo = timeAgoStr(c.time);
-      return '<div class="comment-item reveal">' +
-        '<div class="comment-votes">' +
-        '<button class="vote-btn vote-up ' + upClass + '" onclick="appVoteComment(\'' + c.id + '\', 1)">▲</button>' +
-        '<div class="vote-score">' + c.score + '</div>' +
-        '<button class="vote-btn vote-down ' + downClass + '" onclick="appVoteComment(\'' + c.id + '\', -1)">▼</button>' +
-        '</div>' +
-        '<div class="comment-body">' +
-        '<div class="comment-header">' +
-        '<span class="comment-author">' + escapeHtml(c.author) + '</span>' +
-        '<span class="comment-time">' + timeAgo + '</span>' +
-        '</div>' +
-        '<div class="comment-text">' + escapeHtml(c.text) + '</div>' +
-        '</div>' +
-        '</div>';
-    }).join('');
-  }
-
-  function timeAgoStr(iso) {
-    const d = new Date(iso);
-    const now = new Date();
-    const sec = Math.floor((now - d) / 1000);
-    if (sec < 60) return 'just now';
-    const min = Math.floor(sec / 60);
-    if (min < 60) return min + 'm ago';
-    const hr = Math.floor(min / 60);
-    if (hr < 24) return hr + 'h ago';
-    return Math.floor(hr / 24) + 'd ago';
-  }
-
-  document.getElementById('postComment').addEventListener('click', () => {
-    const ta = document.getElementById('newCommentText');
-    const text = ta.value.trim();
-    if (!text) { toast({ type: 'err', title: 'Empty comment', desc: 'Please type something before posting.' }); return; }
-    comments.unshift({
-      id: 'c' + Date.now(),
-      author: 'Volunteer',
-      text: text,
-      score: 0,
-      time: new Date().toISOString(),
-      userVote: 0
-    });
-    saveComments();
-    ta.value = '';
-    renderComments();
-    toast({ type: 'ok', title: 'Posted', desc: 'Your comment has been shared.' });
-    addActivity('Posted a comment: ' + escapeHtml(text.slice(0, 40)) + (text.length > 40 ? '…' : ''), 'ok');
-  });
-
-  window.appVoteComment = function (cid, dir) {
-    const c = comments.find(x => x.id === cid);
-    if (!c) return;
-    if (c.userVote === dir) {
-      c.userVote = 0;
-      c.score -= dir;
-    } else {
-      c.score += (c.userVote === 0 ? dir : dir * 2);
-      c.userVote = dir;
-    }
-    saveComments();
-    renderComments();
-  };
-
-  /* ---------- Navigation titles ---------- */
-  // Add comments to titles object
-  if (typeof titles !== 'undefined') {
-    titles.comments = ['Volunteer Feedback', 'Share updates and feedback with other volunteers.'];
-  }
-
-  /* ---------- Keyboard shortcut 7 = comments ---------- */
-  const keymap = { '1': 'dashboard', '2': 'shifts', '3': 'signup', '4': 'checkin', '5': 'settings', '6': 'calendar', '7': 'comments' };
-  const existingKeydown = document.onkeydown;
-  document.addEventListener('keydown', (e) => {
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
-    if (keymap[e.key]) showView(keymap[e.key]);
-  });
-
-  /* ---------- Boot additions ---------- */
-  loadComments();
-
-
-  /* ---------- Reminders Modal (fixed - works reliably) ---------- */
   const addReminderModal = document.getElementById('addReminderModal');
   const reminderBackdrop = document.getElementById('reminderBackdrop');
   const openAddReminder = document.getElementById('openAddReminder');
@@ -743,26 +654,16 @@
     const time = form.get('time');
     const description = form.get('description').trim();
     const shiftId = form.get('shiftId') || '';
-
-    if (!title || !date || !time) {
-      toast({ type: 'err', title: 'Incomplete form', desc: 'Please fill in title, date, and time.' });
-      return;
-    }
-
-    reminders.push({
-      id: 'r' + Date.now(),
-      title, date, time, description, shiftId
-    });
+    if (!title || !date || !time) { toast({ type: 'err', title: 'Incomplete form', desc: 'Please fill in title, date, and time.' }); return; }
+    reminders.push({ id: 'r' + Date.now(), title, date, time, description, shiftId });
     saveReminders();
     closeReminderModal();
-    renderCalendar();
-    renderDashboard();
-    renderUpcoming();
+    renderCalendar(); renderDashboard(); renderUpcoming();
     toast({ type: 'ok', title: 'Reminder created', desc: '"' + escapeHtml(title) + '" scheduled.' });
     addActivity('Calendar reminder: ' + escapeHtml(title), 'ok');
   });
 
-  /* ---------- ID Card Toggle + Popup ---------- */
+
   const idCardWrapper = document.getElementById('idCardWrapper');
   const idCardToggle = document.getElementById('idCardToggle');
   const idCardPopup = document.getElementById('idCardPopup');
@@ -791,11 +692,8 @@
 
   function updateIdCardData() {
     if (!idCardName) return;
-
-    // Find the first volunteer who is checked in, or first shift
     let activeVolunteer = null;
     let activeShift = null;
-
     for (const s of shifts) {
       for (const v of s.volunteers) {
         if (v.checkedIn) {
@@ -806,11 +704,9 @@
       }
       if (activeVolunteer) break;
     }
-
     if (!activeVolunteer && shifts.length > 0) {
       activeShift = shifts[0];
     }
-
     if (activeVolunteer) {
       idCardName.textContent = activeVolunteer.name;
       idCardRole.textContent = 'Checked-in Volunteer';
@@ -845,15 +741,110 @@
     closeIdCard();
   });
 
-  // Close when clicking outside
   document.addEventListener('click', (e) => {
     if (idCardOpen && idCardPopup && !idCardPopup.contains(e.target) && !idCardToggle.contains(e.target)) {
       closeIdCard();
     }
   });
 
-  // Close on Escape
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && idCardOpen) closeIdCard();
   });
+
+  const badgeToggle = document.getElementById('badgeToggle');
+  const badgeMenu = document.getElementById('badgeMenu');
+  let badgeOpen = false;
+
+  badgeToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    badgeOpen = !badgeOpen;
+    badgeMenu.classList.toggle('open', badgeOpen);
+  });
+
+  document.addEventListener('click', (e) => {
+    if (badgeOpen && badgeMenu && !badgeMenu.contains(e.target) && !badgeToggle.contains(e.target)) {
+      badgeOpen = false;
+      badgeMenu.classList.remove('open');
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+    const map = { '1': 'dashboard', '2': 'shifts', '3': 'signup', '4': 'checkin', '5': 'settings', '6': 'calendar', '7': 'comments' };
+    if (map[e.key]) showView(map[e.key]);
+  });
+
+  load();
+  loadReminders();
+  loadComments();
+  showView('dashboard');
+  observeReveals();
 })();
+
+  function renderComments() {
+    const list = document.getElementById('commentList');
+    if (!list) return;
+    const sorted = [...comments].sort((a, b) => b.score - a.score || new Date(b.time) - new Date(a.time));
+    if (sorted.length === 0) {
+      list.innerHTML = '<div class="empty-state" style="padding:28px 16px;text-align:center"><span class="emoji" style="font-size:2.5rem">💬</span><h3 style="font-size:1.1rem">No comments yet</h3><p class="small">Be the first to share an update about the event.</p></div>';
+      return;
+    }
+    list.innerHTML = sorted.map(c => {
+      const upClass = c.userVote === 1 ? 'voted' : '';
+      const downClass = c.userVote === -1 ? 'voted' : '';
+      const timeAgo = timeAgoStr(c.time);
+      return '<div class="comment-item reveal">' +
+        '<div class="comment-votes">' +
+        '<button class="vote-btn vote-up ' + upClass + '" onclick="appVoteComment(\'' + c.id + '\', 1)">▲</button>' +
+        '<div class="vote-score">' + c.score + '</div>' +
+        '<button class="vote-btn vote-down ' + downClass + '" onclick="appVoteComment(\'' + c.id + '\', -1)">▼</button>' +
+        '</div>' +
+        '<div class="comment-body">' +
+        '<div class="comment-header">' +
+        '<span class="comment-author">' + escapeHtml(c.author) + '</span>' +
+        '<span class="comment-time">' + timeAgo + '</span>' +
+        '</div>' +
+        '<div class="comment-text">' + escapeHtml(c.text) + '</div>' +
+        '</div>' +
+        '</div>';
+    }).join('');
+  }
+
+  function timeAgoStr(iso) {
+    const d = new Date(iso);
+    const now = new Date();
+    const sec = Math.floor((now - d) / 1000);
+    if (sec < 60) return 'just now';
+    const min = Math.floor(sec / 60);
+    if (min < 60) return min + 'm ago';
+    const hr = Math.floor(min / 60);
+    if (hr < 24) return hr + 'h ago';
+    return Math.floor(hr / 24) + 'd ago';
+  }
+
+  document.getElementById('postComment').addEventListener('click', () => {
+    const ta = document.getElementById('newCommentText');
+    const text = ta.value.trim();
+    if (!text) { toast({ type: 'err', title: 'Empty comment', desc: 'Please type something before posting.' }); return; }
+    comments.unshift({ id: 'c' + Date.now(), author: 'Volunteer', text: text, score: 0, time: new Date().toISOString(), userVote: 0 });
+    saveComments();
+    ta.value = '';
+    renderComments();
+    toast({ type: 'ok', title: 'Posted', desc: 'Your comment has been shared.' });
+    addActivity('Posted a comment: ' + escapeHtml(text.slice(0, 40)) + (text.length > 40 ? '…' : ''), 'ok');
+  });
+
+  window.appVoteComment = function (cid, dir) {
+    const c = comments.find(x => x.id === cid);
+    if (!c) return;
+    if (c.userVote === dir) {
+      c.userVote = 0;
+      c.score -= dir;
+    } else {
+      c.score += (c.userVote === 0 ? dir : dir * 2);
+      c.userVote = dir;
+    }
+    saveComments();
+    renderComments();
+  };
+

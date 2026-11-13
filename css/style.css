@@ -1109,7 +1109,7 @@ input::placeholder { color: #64748b; }
 .keys { color: #cbd5e1; }
 
 
-/* ============ ID Card Toggle + Popup ============ */
+/* ============ ID Card Toggle Button ============ */
 .id-card-wrapper {
   position: fixed;
   top: 140px;
@@ -1146,40 +1146,143 @@ input::placeholder { color: #64748b; }
 .id-card-toggle:active {
   transform: scale(0.95);
 }
+.id-card-toggle.open {
+  transform: rotate(45deg);
+}
 
-.id-card-popup {
+
+/* ============ Volunteer Dropdown Badge ============ */
+.dropdown {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.badge-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 800;
+  border: 1px solid rgba(37, 99, 235, 0.16);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+.badge-btn:hover {
+  background: rgba(37, 99, 235, 0.25);
+  box-shadow: 0 0 0 1px rgba(37,99,235,0.3);
+}
+.badge-arrow {
+  font-size: 0.6rem;
+  transition: transform 0.2s ease;
+}
+.badge.open .badge-arrow {
+  transform: rotate(180deg);
+}
+.badge-menu {
   position: absolute;
-  top: 70px;
+  top: 100%;
   right: 0;
-  width: 340px;
-  background: rgba(15, 23, 42, 0.9);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 20px;
-  box-shadow: 0 40px 80px -20px rgba(0,0,0,0.6);
-  backdrop-filter: blur(20px);
+  margin-top: 8px;
+  width: 240px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
   opacity: 0;
-  transform: scale(0.85) translateY(20px);
+  transform: scale(0.95) translateY(-10px);
   pointer-events: none;
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 900;
+  overflow: hidden;
+}
+.badge-menu.open {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  pointer-events: auto;
+}
+.badge-menu-header {
+  padding: 12px 16px;
+  background: var(--surface-soft);
+  border-bottom: 1px solid var(--line);
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.badge-menu-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+.badge-menu-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+.badge-menu-item:hover {
+  background: var(--surface-soft);
+}
+.badge-menu-item-name {
+  font-weight: 700;
+  color: var(--ink);
+  font-size: 0.9rem;
+}
+.badge-menu-item-role {
+  font-size: 0.82rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+.badge-menu-empty {
+  padding: 16px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* ============ Fixed ID Card Popup - Center Pop-out ============ */
+.id-card-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 340px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 24px;
+  box-shadow: 0 50px 100px -20px rgba(0,0,0,0.7);
+  backdrop-filter: blur(30px);
+  opacity: 0;
+  transform: scale(0.4) translate(-50%, -50%);
+  pointer-events: none;
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 2000;
   overflow: hidden;
 }
 .id-card-popup.open {
   opacity: 1;
-  transform: scale(1) translateY(0);
+  transform: scale(1) translate(-50%, -50%);
   pointer-events: auto;
 }
 
 .id-card-close {
   position: absolute;
-  top: 14px;
-  right: 14px;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  top: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
   background: rgba(255,255,255,0.08);
   border: 1px solid rgba(255,255,255,0.12);
   color: #cbd5e1;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   display: grid;
   place-items: center;
   cursor: pointer;
@@ -1187,74 +1290,279 @@ input::placeholder { color: #64748b; }
   z-index: 10;
 }
 .id-card-close:hover {
-  background: rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.2);
   color: #fff;
+  transform: rotate(90deg);
 }
 
 .id-card-popup .id-card {
   width: 100%;
-  height: 220px;
+  height: 240px;
+  border: none;
+  background: transparent;
+  box-shadow: none;
   transform-style: preserve-3d;
-  transition: transform 0.1s ease-out;
+}
+.id-card-popup .id-card::before {
+  background: linear-gradient(90deg, #6b21a8 0%, #e879f9 40%, #06b6d4 100%);
+  height: 60px;
 }
 .id-card-popup .id-card-content {
-  padding: 24px 20px;
+  padding: 32px 28px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 .id-card-popup .id-card-header {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
 }
-.id-card-popup .id-card-badge {
-  margin-left: 0;
-  margin-top: 6px;
+.id-card-popup .id-card-avatar {
+  width: 52px;
+  height: 52px;
+  font-size: 1.4rem;
+}
+.id-card-popup .id-card-info h3 {
+  font-size: 1.25rem;
 }
 .id-card-popup .id-card-body {
-  font-size: 0.85rem;
-  margin-top: 12px;
+  font-size: 0.9rem;
+  margin-top: 0;
+}
+.id-card-popup .id-card-body br {
+  margin-bottom: 8px;
 }
 .id-card-popup .id-card-footer {
-  margin-top: 14px;
-  padding-top: 14px;
+  margin-top: 0;
+  padding-top: 20px;
   border-top: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.id-card-popup .id-card-glow {
-  transition: opacity 0.4s ease;
+@media (max-width: 600px) {
+  .id-card-popup {
+    width: 90vw;
+    max-width: 340px;
+  }
+  .badge-menu {
+    width: 200px;
+    left: 50%;
+    transform: scale(0.95) translate(-50%, -10px);
+  }
+  .badge-menu.open {
+    transform: scale(1) translate(-50%, 0);
+  }
 }
-.id-card-popup .id-card:hover .id-card-glow {
+
+
+/* ============ Volunteer Dropdown Badge ============ */
+.dropdown {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.badge-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 800;
+  border: 1px solid rgba(37, 99, 235, 0.16);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+.badge-btn:hover {
+  background: rgba(37, 99, 235, 0.25);
+  box-shadow: 0 0 0 1px rgba(37,99,235,0.3);
+}
+.badge-arrow {
+  font-size: 0.6rem;
+  transition: transform 0.2s ease;
+}
+.badge.open .badge-arrow {
+  transform: rotate(180deg);
+}
+.badge-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  width: 240px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  transform: scale(0.95) translateY(-10px);
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 900;
+  overflow: hidden;
+}
+.badge-menu.open {
   opacity: 1;
+  transform: scale(1) translateY(0);
+  pointer-events: auto;
 }
-
-.id-card-hint {
-  font-size: 0.7rem;
+.badge-menu-header {
+  padding: 12px 16px;
+  background: var(--surface-soft);
+  border-bottom: 1px solid var(--line);
+  font-size: 0.75rem;
+  font-weight: 800;
   color: var(--muted);
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.5px;
+}
+.badge-menu-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+.badge-menu-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+.badge-menu-item:hover {
+  background: var(--surface-soft);
+}
+.badge-menu-item-name {
+  font-weight: 700;
+  color: var(--ink);
+  font-size: 0.9rem;
+}
+.badge-menu-item-role {
+  font-size: 0.82rem;
+  color: var(--muted);
   font-weight: 600;
-  margin-top: 4px;
+}
+.badge-menu-empty {
+  padding: 16px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-align: center;
 }
 
-@media (max-width: 900px) {
-  .id-card-wrapper {
-    top: auto;
-    bottom: 20px;
-    right: 20px;
-    left: 20px;
-    flex-direction: row;
-    justify-content: center;
-    gap: 14px;
-  }
+/* ============ ID Card Popup - Center Pop-out ============ */
+.id-card-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 340px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 24px;
+  box-shadow: 0 50px 100px -20px rgba(0,0,0,0.7);
+  backdrop-filter: blur(30px);
+  opacity: 0;
+  transform: scale(0.4) translate(-50%, -50%);
+  pointer-events: none;
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 2000;
+  overflow: hidden;
+}
+.id-card-popup.open {
+  opacity: 1;
+  transform: scale(1) translate(-50%, -50%);
+  pointer-events: auto;
+}
+
+.id-card-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #cbd5e1;
+  font-size: 1.4rem;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  z-index: 10;
+}
+.id-card-close:hover {
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+  transform: rotate(90deg);
+}
+
+.id-card-popup .id-card {
+  width: 100%;
+  height: 240px;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  transform-style: preserve-3d;
+}
+.id-card-popup .id-card::before {
+  background: linear-gradient(90deg, #6b21a8 0%, #e879f9 40%, #06b6d4 100%);
+  height: 60px;
+}
+.id-card-popup .id-card-content {
+  padding: 32px 28px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.id-card-popup .id-card-header {
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
+}
+.id-card-popup .id-card-avatar {
+  width: 52px;
+  height: 52px;
+  font-size: 1.4rem;
+}
+.id-card-popup .id-card-info h3 {
+  font-size: 1.25rem;
+}
+.id-card-popup .id-card-body {
+  font-size: 0.9rem;
+  margin-top: 0;
+}
+.id-card-popup .id-card-body br {
+  margin-bottom: 8px;
+}
+.id-card-popup .id-card-footer {
+  margin-top: 0;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@media (max-width: 600px) {
   .id-card-popup {
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    right: 20px;
-    width: auto;
-    transform: scale(0.85) translateY(-40px);
+    width: 90vw;
+    max-width: 340px;
   }
-  .id-card-popup.open {
-    transform: scale(1) translateY(0);
+  .badge-menu {
+    width: 200px;
+    left: 50%;
+    transform: scale(0.95) translate(-50%, -10px);
+  }
+  .badge-menu.open {
+    transform: scale(1) translate(-50%, 0);
   }
 }
 

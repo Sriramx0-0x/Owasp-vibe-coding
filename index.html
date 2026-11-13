@@ -100,7 +100,16 @@
           <span class="time-label">Now</span>
           <span class="time-value" id="liveTime">--:--</span>
         </div>
-        <span class="badge" id="liveCount">0 volunteers</span>
+        <div class="badge dropdown" id="liveCountBadge">
+          <button class="badge-btn" id="badgeToggle" aria-label="Volunteers">
+            <span id="liveCount">0</span> volunteers
+            <span class="badge-arrow">▼</span>
+          </button>
+          <div class="badge-menu" id="badgeMenu">
+            <div class="badge-menu-header">Checked-in Volunteers</div>
+            <div class="badge-menu-list" id="badgeMenuList"></div>
+          </div>
+        </div>
       </div>
     </header>
 
