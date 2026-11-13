@@ -1889,3 +1889,24 @@ input::placeholder { color: #64748b; }
   background: rgba(255,255,255,0.03) !important;
 }
 
+
+/* ============ Role column - maximum brightness ============ */
+table tr td:first-child,
+.table-wrap tr td:first-child,
+td:first-child {
+  color: #ffffff !important;
+  font-weight: 900 !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5) !important;
+}
+
+table tr td,
+.table-wrap tr td {
+  color: #f1f5f9 !important;
+}
+
+table tr th,
+.table-wrap tr th {
+  color: #cbd5e1 !important;
+  font-weight: 700 !important;
+}
+
