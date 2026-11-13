@@ -5,11 +5,11 @@
   const COMMENT_KEY = 'volunteerhub_comments_v1';
 
   const SEED_SHIFTS = [
-    { id: 's1', role: 'Registration Desk', date: '2026-11-15', startTime: '08:00', endTime: '12:00', location: 'Main Lobby - Hall A', required: 4, volunteers: [] },
-    { id: 's2', role: 'Tech Support', date: '2026-11-15', startTime: '10:00', endTime: '14:00', location: 'Workshop Room B', required: 3, volunteers: [] },
-    { id: 's3', role: 'Mentor Guide', date: '2026-11-15', startTime: '13:00', endTime: '17:00', location: 'Mentor Lounge', required: 5, volunteers: [] },
-    { id: 's4', role: 'Catering Assistant', date: '2026-11-15', startTime: '11:00', endTime: '15:00', location: 'Cafeteria', required: 2, volunteers: [] },
-    { id: 's5', role: 'Cleanup Crew', date: '2026-11-15', startTime: '17:00', endTime: '20:00', location: 'Entire Venue', required: 6, volunteers: [] }
+    { id: 's1', role: 'Registration Desk', date: '2026-11-15', startTime: '08:00', endTime: '12:00', location: 'Main Lobby - Hall A', required: 4, volunteers: [], waitlist: [] },
+    { id: 's2', role: 'Tech Support', date: '2026-11-15', startTime: '10:00', endTime: '14:00', location: 'Workshop Room B', required: 3, volunteers: [], waitlist: [] },
+    { id: 's3', role: 'Mentor Guide', date: '2026-11-15', startTime: '13:00', endTime: '17:00', location: 'Mentor Lounge', required: 5, volunteers: [], waitlist: [] },
+    { id: 's4', role: 'Catering Assistant', date: '2026-11-15', startTime: '11:00', endTime: '15:00', location: 'Cafeteria', required: 2, volunteers: [], waitlist: [] },
+    { id: 's5', role: 'Cleanup Crew', date: '2026-11-15', startTime: '17:00', endTime: '20:00', location: 'Entire Venue', required: 6, volunteers: [], waitlist: [] }
   ];
 
   let shifts = [];
@@ -23,6 +23,8 @@
   function load() {
     const raw = localStorage.getItem(STORAGE_KEY);
     shifts = raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(SEED_SHIFTS));
+    // Ensure all shifts have waitlist array (migration)
+    shifts.forEach(s => { if (!s.waitlist) s.waitlist = []; });
     if (!raw) save();
   }
   function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(shifts)); }
@@ -214,6 +216,7 @@
     const total = shifts.length;
     const signedUp = shifts.reduce((a, s) => a + s.volunteers.length, 0);
     const checkedInCount = shifts.reduce((a, s) => a + s.volunteers.filter(v => v.checkedIn).length, 0);
+    const waitlistCount = shifts.reduce((a, s) => a + s.waitlist.length, 0);
     let filled = 0, vacant = 0, understaffed = 0;
     shifts.forEach(s => { const st = shiftStatus(s); if (st === 'filled') filled++; else if (st === 'vacant') vacant++; else understaffed++; });
 
@@ -222,6 +225,7 @@
     document.getElementById('statFilled').textContent = filled;
     document.getElementById('statVacant').textContent = vacant;
     document.getElementById('statUnderstaffed').textContent = understaffed;
+    document.getElementById('statWaitlist').textContent = waitlistCount;
     document.getElementById('liveCount').textContent = checkedInCount;
     const liveCountEl = document.getElementById('liveCount');
     const btn = document.getElementById('badgeToggle');
@@ -341,7 +345,13 @@
         const cls = st === 'filled' ? 'filled' : st === 'vacant' ? 'vacant' : 'understaffed';
         const label = st === 'filled' ? 'Filled' : st === 'vacant' ? 'Vacant' : 'Understaffed';
         const vols = s.volunteers.length ? s.volunteers.map(v => '<span class="vol-chip ' + (v.checkedIn ? 'checked' : '') + '" title="' + escapeHtml(v.email) + '"><span class="dot"></span>' + escapeHtml(v.name) + '</span>').join(' ') : '<span class="small">— no volunteers yet —</span>';
-        html += '<tr><td><strong>' + escapeHtml(s.role) + '</strong></td><td>' + fmtDate(s.date) + '</td><td>' + fmtTime(s.startTime) + ' – ' + fmtTime(s.endTime) + '</td><td class="small">' + escapeHtml(s.location) + '</td><td><strong>' + s.volunteers.length + '</strong> / ' + s.required + '</td><td><span class="status ' + cls + '"><span class="dot"></span>' + label + '</span></td><td>' + vols + '</td><td><button class="btn btn-danger btn-sm" onclick="appDeleteShift(\'' + s.id + '\')" title="Delete shift">Delete</button></td></tr>';
+        const wl = s.waitlist.length ? s.waitlist.map(v => '<span class="vol-chip" title="' + escapeHtml(v.email) + '"><span class="dot" style="background:#94a3b8"></span>' + escapeHtml(v.name) + '</span>').join(' ') : '';
+        const isFull = s.volunteers.length >= s.required;
+        const btnHtml = isFull
+          ? '<button class="btn btn-outline btn-sm" onclick="appJoinWaitlist(\'' + s.id + '\')" title="Join Waitlist">⏳ Waitlist</button>'
+          : '<button class="btn btn-primary btn-sm" onclick="appSignUpShift(\'' + s.id + '\')" title="Sign Up">Sign Up</button>';
+        const wlBtn = s.waitlist.length > 0 ? '<button class="btn btn-outline btn-sm" onclick="appViewWaitlist(\'' + s.id + '\')" title="View Waitlist">📋 ' + s.waitlist.length + '</button>' : '';
+        html += '<tr><td><strong>' + escapeHtml(s.role) + '</strong></td><td>' + fmtDate(s.date) + '</td><td>' + fmtTime(s.startTime) + ' – ' + fmtTime(s.endTime) + '</td><td class="small">' + escapeHtml(s.location) + '</td><td><strong>' + s.volunteers.length + '</strong> / ' + s.required + '</td><td><span class="status ' + cls + '"><span class="dot"></span>' + label + '</span></td><td>' + vols + (wl ? ' <br><span class="small" style="color:#eab308">⏳ Waitlist: ' + wl + '</span>' : '') + '</td><td>' + btnHtml + wlBtn + '</td></tr>';
       });
     }
     html += '</tbody></table>';
@@ -357,6 +367,42 @@
     renderShifts(); renderDashboard(); renderSignup(); renderCheckIn();
     toast({ type: 'info', title: 'Shift deleted', desc: 'The role shift has been removed.' });
     addActivity('Deleted shift', 'err');
+  };
+
+  window.appJoinWaitlist = function (shiftId) {
+    const shift = shifts.find(s => s.id === shiftId);
+    if (!shift) return;
+    const name = prompt('Enter your name to join the waitlist for "' + shift.role + '":');
+    const email = prompt('Enter your email:');
+    if (!name || !email) return;
+    if (shift.waitlist.find(w => w.email === email)) {
+      toast({ type: 'err', title: 'Already on waitlist', desc: email + ' is already on the waitlist.' });
+      return;
+    }
+    shift.waitlist.push({ name: name, email: email, joinedAt: new Date().toISOString() });
+    save();
+    renderShifts();
+    toast({ type: 'ok', title: 'Waitlist joined', desc: name + ' added to waitlist for "' + shift.role + '".' });
+    addActivity('Waitlist: ' + name + ' joined ' + shift.role, 'info');
+  };
+
+  window.appViewWaitlist = function (shiftId) {
+    const shift = shifts.find(s => s.id === shiftId);
+    if (!shift) return;
+    const list = shift.waitlist.map(v => v.name + ' (' + v.email + ')').join('\n');
+    alert('Waitlist for "' + shift.role + '":\n\n' + list);
+  };
+
+  window.appAutoAssignWaitlist = function (shiftId) {
+    const shift = shifts.find(s => s.id === shiftId);
+    if (!shift || shift.waitlist.length === 0) return false;
+    const next = shift.waitlist.shift();
+    shift.volunteers.push({ id: 'v' + Date.now(), name: next.name, email: next.email, checkedIn: false, checkedInAt: null });
+    save();
+    renderShifts(); renderDashboard(); renderSignup(); renderCheckIn();
+    toast({ type: 'ok', title: 'Waitlist auto-assigned', desc: next.name + ' moved from waitlist to "' + shift.role + '".' });
+    addActivity('Waitlist: ' + next.name + ' auto-assigned to ' + shift.role, 'ok');
+    return true;
   };
 
   const addShiftModal = document.getElementById('addShiftModal');
@@ -392,7 +438,7 @@
       toast({ type: 'err', title: 'Invalid time', desc: 'End time must be after start time.' });
       return;
     }
-    const newShift = { id: 's' + Date.now(), role, date, startTime, endTime, location, required, volunteers: [] };
+    const newShift = { id: 's' + Date.now(), role, date, startTime, endTime, location, required, volunteers: [], waitlist: [] };
     shifts.push(newShift);
     save();
     closeModal();
@@ -403,13 +449,18 @@
 
   function renderSignup() {
     const sel = document.getElementById('signupShiftSelect');
-    sel.innerHTML = '<option value="">— Choose a shift with open spots —</option>';
+    sel.innerHTML = '<option value="">— Choose a shift —</option>';
     shifts.forEach(s => {
       const open = s.required - s.volunteers.length;
       if (open > 0) {
         const o = document.createElement('option');
         o.value = s.id;
         o.textContent = s.role + ' — ' + fmtDate(s.date) + ' ' + fmtTime(s.startTime) + '–' + fmtTime(s.endTime) + ' (' + open + ' spot' + (open > 1 ? 's' : '') + ' left) @ ' + escapeHtml(s.location);
+        sel.appendChild(o);
+      } else if (s.waitlist.length < 5) {
+        const o = document.createElement('option');
+        o.value = s.id;
+        o.textContent = s.role + ' — ' + fmtDate(s.date) + ' ' + fmtTime(s.startTime) + '–' + fmtTime(s.endTime) + ' (WAITLIST) @ ' + escapeHtml(s.location);
         sel.appendChild(o);
       }
     });
@@ -465,7 +516,7 @@
     let html = '<table><thead><tr><th>Volunteer</th><th>Email</th><th>Status</th><th>Action</th></tr></thead><tbody>';
     shift.volunteers.forEach(v => {
       anyPending = anyPending || !v.checkedIn;
-      html += '<tr><td><strong>' + escapeHtml(v.name) + '</strong></td><td class="small">' + escapeHtml(v.email) + '</td><td><span class="status ' + (v.checkedIn ? 'checked' : 'pending') + '"><span class="dot"></span>' + (v.checkedIn ? 'Checked In' : 'Pending') + '</span></td><td>' + (!v.checkedIn ? '<button class="btn btn-primary btn-sm" onclick="appCheckIn(\'' + id + '\', \'' + v.id + '\')" title="Check in volunteer">Check In</button>' : '<button class="btn btn-secondary btn-sm" onclick="appCheckOut(\'' + id + '\', \'' + v.id + '\')" title="Check out volunteer">Check Out</button>') + '</td></tr>';
+      html += '<tr><td><strong>' + escapeHtml(v.name) + '</strong></td><td class="small">' + escapeHtml(v.email) + '</td><td><span class="status ' + (v.checkedIn ? 'checked' : 'pending') + '"><span class="dot"></span>' + (v.checkedIn ? 'Checked In' : 'Pending') + '</span></td><td>' + (!v.checkedIn ? '<button class="btn btn-primary btn-sm" onclick="appCheckIn(\'' + id + '\', \'' + v.id + '\')" title="Check in volunteer">Check In</button> <button class="btn btn-danger btn-sm" onclick="appNoShow(\'' + id + '\', \'' + v.id + '\')" title="Mark no-show">No Show</button>' : '<button class="btn btn-secondary btn-sm" onclick="appCheckOut(\'' + id + '\', \'' + v.id + '\')" title="Check out volunteer">Check Out</button>') + '</td></tr>';
     });
     html += '</tbody></table>';
     checkinList.innerHTML = html;
@@ -508,6 +559,26 @@
     const timeStr = checkoutTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     toast({ type: 'info', title: 'Checked out', desc: escapeHtml(v.name) + ' has checked out from "' + escapeHtml(shift.role) + '" at ' + timeStr + '.' });
     addActivity(v.name + ' checked out from ' + escapeHtml(shift.role) + ' at ' + timeStr, 'info');
+    // Auto-assign from waitlist if spot opened
+    if (shift.volunteers.length < shift.required && shift.waitlist.length > 0) {
+      appAutoAssignWaitlist(shiftId);
+    }
+  };
+
+  window.appNoShow = function (shiftId, volId) {
+    const shift = shifts.find(s => s.id === shiftId);
+    const v = shift.volunteers.find(x => x.id === volId);
+    if (!v) return;
+    if (!confirm('Mark ' + v.name + ' as no-show? Their spot will be given to the waitlist.')) return;
+    shift.volunteers = shift.volunteers.filter(x => x.id !== volId);
+    save();
+    renderDashboard(); renderShifts(); renderCheckIn();
+    toast({ type: 'info', title: 'No-show marked', desc: v.name + ' marked as no-show from "' + escapeHtml(shift.role) + '".' });
+    addActivity('No-show: ' + v.name + ' removed from ' + shift.role, 'info');
+    // Auto-assign from waitlist
+    if (shift.waitlist.length > 0) {
+      appAutoAssignWaitlist(shiftId);
+    }
   };
 
   function renderCheckout() {
