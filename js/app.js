@@ -165,6 +165,7 @@
     if (id === 'signup') renderSignup();
     if (id === 'checkin') renderCheckIn();
     if (id === 'calendar') renderCalendar();
+    if (id === 'comments') renderComments();
   }
 
   navItems.forEach(n => {
@@ -415,7 +416,7 @@
     let html = '<table><thead><tr><th>Volunteer</th><th>Email</th><th>Status</th><th>Action</th></tr></thead><tbody>';
     shift.volunteers.forEach(v => {
       anyPending = anyPending || !v.checkedIn;
-      html += '<tr><td><strong>' + escapeHtml(v.name) + '</strong></td><td class="small">' + escapeHtml(v.email) + '</td><td><span class="status ' + (v.checkedIn ? 'checked' : 'pending') + '"><span class="dot"></span>' + (v.checkedIn ? '✓ Checked In' : '○ Pending') + '</span></td><td>' + (!v.checkedIn ? '<button class="btn btn-primary btn-sm" onclick="appCheckIn(\'' + id + '\', \'' + v.id + '\')" title="Check in volunteer"><span>✓</span> Check In</button>' : '<span class="small pill ok">Done</span>') + '</td></tr>';
+      html += '<tr><td><strong>' + escapeHtml(v.name) + '</strong></td><td class="small">' + escapeHtml(v.email) + '</td><td><span class="status ' + (v.checkedIn ? 'checked' : 'pending') + '"><span class="dot"></span>' + (v.checkedIn ? '✓ Checked In' : '○ Pending') + '</span></td><td>' + (!v.checkedIn ? '<button class="btn btn-primary btn-sm" onclick="appCheckIn(\'' + id + '\', \'' + v.id + '\')" title="Check in volunteer"><span>✓</span> Check In</button>' : '<button class="btn btn-secondary btn-sm" onclick="appCheckOut(\'' + id + '\', \'' + v.id + '\')" title="Check out volunteer"><span>⏰</span> Check Out</button>') + '</td></tr>';
     });
     html += '</tbody></table>';
     checkinList.innerHTML = html;
@@ -660,4 +661,120 @@
     if (!b.classList.contains('lusion-btn')) b.classList.add('lusion-btn');
   });
   document.getElementById('pageTitle') && (document.getElementById('pageTitle').classList.add('text-gradient'));
+
+  /* ---------- Check Out ---------- */
+  window.appCheckOut = function (shiftId, volId) {
+    const shift = shifts.find(s => s.id === shiftId);
+    const v = shift.volunteers.find(x => x.id === volId);
+    if (!v || !v.checkedIn) return;
+    v.checkedIn = false;
+    v.checkedOutAt = new Date().toISOString();
+    save();
+    checkinShiftSelect.dispatchEvent(new Event('change'));
+    renderDashboard();
+    renderShifts();
+    toast({ type: 'info', title: 'Checked out', desc: escapeHtml(v.name) + ' has checked out from "' + escapeHtml(shift.role) + '".' });
+    addActivity(v.name + ' checked out from ' + escapeHtml(shift.role), 'info');
+  };
+
+  /* ---------- Comments (Reddit + GitHub style) ---------- */
+  let comments = [];
+  const COMMENT_KEY = 'volunteerhub_comments_v1';
+
+  function loadComments() {
+    const raw = localStorage.getItem(COMMENT_KEY);
+    comments = raw ? JSON.parse(raw) : [];
+  }
+  function saveComments() { localStorage.setItem(COMMENT_KEY, JSON.stringify(comments)); }
+
+  function renderComments() {
+    const list = document.getElementById('commentList');
+    if (!list) return;
+    const sorted = [...comments].sort((a, b) => b.score - a.score || new Date(b.time) - new Date(a.time));
+    if (sorted.length === 0) {
+      list.innerHTML = '<div class="empty-state" style="padding:28px 16px;text-align:center"><span class="emoji" style="font-size:2.5rem">💬</span><h3 style="font-size:1.1rem">No comments yet</h3><p class="small">Be the first to share an update about the event.</p></div>';
+      return;
+    }
+    list.innerHTML = sorted.map(c => {
+      const upClass = c.userVote === 1 ? 'voted' : '';
+      const downClass = c.userVote === -1 ? 'voted' : '';
+      const timeAgo = timeAgoStr(c.time);
+      return '<div class="comment-item reveal">' +
+        '<div class="comment-votes">' +
+        '<button class="vote-btn vote-up ' + upClass + '" onclick="appVoteComment(\'' + c.id + '\', 1)">▲</button>' +
+        '<div class="vote-score">' + c.score + '</div>' +
+        '<button class="vote-btn vote-down ' + downClass + '" onclick="appVoteComment(\'' + c.id + '\', -1)">▼</button>' +
+        '</div>' +
+        '<div class="comment-body">' +
+        '<div class="comment-header">' +
+        '<span class="comment-author">' + escapeHtml(c.author) + '</span>' +
+        '<span class="comment-time">' + timeAgo + '</span>' +
+        '</div>' +
+        '<div class="comment-text">' + escapeHtml(c.text) + '</div>' +
+        '</div>' +
+        '</div>';
+    }).join('');
+  }
+
+  function timeAgoStr(iso) {
+    const d = new Date(iso);
+    const now = new Date();
+    const sec = Math.floor((now - d) / 1000);
+    if (sec < 60) return 'just now';
+    const min = Math.floor(sec / 60);
+    if (min < 60) return min + 'm ago';
+    const hr = Math.floor(min / 60);
+    if (hr < 24) return hr + 'h ago';
+    return Math.floor(hr / 24) + 'd ago';
+  }
+
+  document.getElementById('postComment').addEventListener('click', () => {
+    const ta = document.getElementById('newCommentText');
+    const text = ta.value.trim();
+    if (!text) { toast({ type: 'err', title: 'Empty comment', desc: 'Please type something before posting.' }); return; }
+    comments.unshift({
+      id: 'c' + Date.now(),
+      author: 'Volunteer',
+      text: text,
+      score: 0,
+      time: new Date().toISOString(),
+      userVote: 0
+    });
+    saveComments();
+    ta.value = '';
+    renderComments();
+    toast({ type: 'ok', title: 'Posted', desc: 'Your comment has been shared.' });
+    addActivity('Posted a comment: ' + escapeHtml(text.slice(0, 40)) + (text.length > 40 ? '…' : ''), 'ok');
+  });
+
+  window.appVoteComment = function (cid, dir) {
+    const c = comments.find(x => x.id === cid);
+    if (!c) return;
+    if (c.userVote === dir) {
+      c.userVote = 0;
+      c.score -= dir;
+    } else {
+      c.score += (c.userVote === 0 ? dir : dir * 2);
+      c.userVote = dir;
+    }
+    saveComments();
+    renderComments();
+  };
+
+  /* ---------- Navigation titles ---------- */
+  // Add comments to titles object
+  if (typeof titles !== 'undefined') {
+    titles.comments = ['Volunteer Feedback', 'Share updates and feedback with other volunteers.'];
+  }
+
+  /* ---------- Keyboard shortcut 7 = comments ---------- */
+  const keymap = { '1': 'dashboard', '2': 'shifts', '3': 'signup', '4': 'checkin', '5': 'settings', '6': 'calendar', '7': 'comments' };
+  const existingKeydown = document.onkeydown;
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+    if (keymap[e.key]) showView(keymap[e.key]);
+  });
+
+  /* ---------- Boot additions ---------- */
+  loadComments();
 })();

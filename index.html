@@ -61,6 +61,11 @@
         <span class="nav-label">Calendar</span>
         <span class="nav-dot"></span>
       </a>
+      <a href="#comments" class="nav-item" data-view="comments" id="nav-comments">
+        <span class="nav-icon">💬</span>
+        <span class="nav-label">Comments</span>
+        <span class="nav-dot"></span>
+      </a>
     </nav>
     <div class="nav-footer">
       <div class="user-card">
@@ -460,7 +465,7 @@
           <div class="keyboard-hint reveal">
             <p class="hint-label">Keyboard shortcuts</p>
             <div class="keys">
-              <kbd>1</kbd> Dashboard · <kbd>2</kbd> Shifts · <kbd>3</kbd> Sign Up · <kbd>4</kbd> Check In · <kbd>5</kbd> Settings · <kbd>6</kbd> Calendar · <kbd>Esc</kbd> Close
+              <kbd>1</kbd> Dashboard · <kbd>2</kbd> Shifts · <kbd>3</kbd> Sign Up · <kbd>4</kbd> Check In · <kbd>5</kbd> Settings · <kbd>6</kbd> Calendar · <kbd>7</kbd> Comments · <kbd>Esc</kbd> Close
             </div>
           </div>
         </div>
@@ -538,6 +543,34 @@
                 <button type="submit" class="btn btn-primary">Create Reminder</button>
               </div>
             </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- COMMENTS (Reddit + GitHub style) -->
+      <section class="view reveal" id="view-comments" style="display:none">
+        <div class="section-head reveal">
+          <h2 class="section-title">Volunteer Feedback</h2>
+          <p class="section-sub">Share updates, ask questions, and give feedback about the event.</p>
+        </div>
+
+        <div class="card reveal">
+          <div class="card-header">
+            <div class="card-title-group">
+              <h2 class="card-title">Discussion Threads</h2>
+              <p class="card-sub">Upvote, comment, and stay in the loop with other volunteers.</p>
+            </div>
+          </div>
+          <div class="comments-wrap reveal">
+            <div class="comment-form reveal">
+              <div class="form-group">
+                <textarea id="newCommentText" rows="3" placeholder="What's happening? Share an update or ask a question…"></textarea>
+              </div>
+              <div class="form-actions">
+                <button class="btn btn-primary" id="postComment">Post</button>
+              </div>
+            </div>
+            <div class="comment-list" id="commentList"></div>
           </div>
         </div>
       </section>
