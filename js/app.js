@@ -1,6 +1,7 @@
-/* VolunteerHub — MVP Application Logic (Polished UI/UX) */
+/* VolunteerHub — MVP Application Logic (Polished UI/UX + Calendar) */
 (function () {
   const STORAGE_KEY = 'volunteerhub_shifts_v1';
+  const REMINDER_KEY = 'volunteerhub_reminders_v1';
 
   const SEED_SHIFTS = [
     { id: 's1', role: 'Registration Desk', date: '2026-11-15', startTime: '08:00', endTime: '12:00', location: 'Main Lobby - Hall A', required: 4, volunteers: [] },
@@ -11,28 +12,30 @@
   ];
 
   let shifts = [];
+  let reminders = [];
   let activityLog = [];
   let currentFilter = 'all';
+  let calDate = new Date();
 
-  /* ---------- Storage ---------- */
   function load() {
     const raw = localStorage.getItem(STORAGE_KEY);
     shifts = raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(SEED_SHIFTS));
-    activityLog = [];
     if (!raw) save();
   }
   function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(shifts)); }
 
+  function loadReminders() {
+    const raw = localStorage.getItem(REMINDER_KEY);
+    reminders = raw ? JSON.parse(raw) : [];
+  }
+  function saveReminders() { localStorage.setItem(REMINDER_KEY, JSON.stringify(reminders)); }
+
   function addActivity(text, type = 'info') {
     activityLog.unshift({ text, type, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
     if (activityLog.length > 50) activityLog.pop();
-    if (document.getElementById('view-checkin').style.display === 'block' ||
-        document.getElementById('view-dashboard').style.display === 'block') {
-      renderActivityList();
-    }
+    renderActivityList();
   }
 
-  /* ---------- Helpers ---------- */
   function escapeHtml(text) {
     const d = document.createElement('div');
     d.textContent = text;
@@ -41,8 +44,7 @@
   function fmtTime(t) { return t || '—'; }
   function fmtDate(d) {
     if (!d) return '—';
-    const dt = new Date(d + 'T00:00');
-    return dt.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+    return new Date(d + 'T00:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
   }
   function shiftStatus(shift) {
     const signed = shift.volunteers.length;
@@ -51,7 +53,6 @@
     return 'vacant';
   }
 
-  /* ---------- Toast ---------- */
   const toastContainer = (() => {
     let el = document.getElementById('toastContainer');
     if (!el) {
@@ -69,14 +70,10 @@
     el.className = 'toast ' + type;
     el.id = id;
     const icons = { ok: '✓', err: '✕', info: '!' };
-    el.innerHTML = `
-      <span class="toast-icon">${icons[type]}</span>
-      <div class="toast-body">
-        <div class="toast-title">${escapeHtml(title)}</div>
-        ${desc ? '<div class="toast-desc">' + escapeHtml(desc) + '</div>' : ''}
-      </div>
-      <span class="toast close-btn" onclick="appCloseToast('${id}')">✕</span>
-    `;
+    el.innerHTML = '<span class="toast-icon">' + icons[type] + '</span>' +
+      '<div class="toast-body"><div class="toast-title">' + escapeHtml(title) + '</div>' +
+      (desc ? '<div class="toast-desc">' + escapeHtml(desc) + '</div>' : '') + '</div>' +
+      '<span class="toast close-btn" onclick="appCloseToast(\'' + id + '\')">✕</span>';
     toastContainer.appendChild(el);
     setTimeout(() => appCloseToast(id), duration);
     return id;
@@ -88,7 +85,6 @@
     setTimeout(() => { if (el.parentElement) el.parentElement.removeChild(el); }, 350);
   };
 
-  /* Confetti */
   function confetti() {
     const container = document.getElementById('confetti');
     const colors = ['#2563eb', '#059669', '#d97706', '#f472b6', '#34d399', '#a78bfa', '#fbbf24'];
@@ -104,7 +100,6 @@
     }
   }
 
-  /* ---------- Sidebar: collapse + resize ---------- */
   const sidebar = document.getElementById('sidebar');
   const resizeHandle = document.getElementById('sidebarResize');
   const menuToggle = document.getElementById('menuToggle');
@@ -132,7 +127,6 @@
     document.body.style.userSelect = '';
   });
 
-  /* ---------- Live clock ---------- */
   function updateClock() {
     const now = new Date();
     document.getElementById('liveTime').textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -140,49 +134,43 @@
   setInterval(updateClock, 1000);
   updateClock();
 
-  /* ---------- Navigation ---------- */
   const navItems = document.querySelectorAll('.nav-item');
   const views = document.querySelectorAll('.view');
   const pageTitle = document.getElementById('pageTitle');
   const pageSub = document.getElementById('pageSub');
 
+  const titles = {
+    dashboard: ['Overview', 'Staffing health across all role shifts at a glance.'],
+    shifts: ['Role Shifts', 'Define roles, timings, locations, and required headcount.'],
+    signup: ['Volunteer Sign Up', 'Register for an open shift with available spots.'],
+    checkin: ['Check In', 'Mark signed-up volunteers as present at the event.'],
+    settings: ['Data & Reset', 'Seed, export, or reset your volunteer data.'],
+    calendar: ['Event Calendar', 'Manage reminders and upcoming event schedules.']
+  };
+
   function showView(id) {
-    views.forEach(v => {
-      v.style.display = 'none';
-      v.classList.remove('visible');
-    });
+    views.forEach(v => { v.style.display = 'none'; v.classList.remove('visible'); });
     const target = document.getElementById('view-' + id);
     if (target) {
       target.style.display = 'block';
       requestAnimationFrame(() => target.classList.add('visible'));
     }
     navItems.forEach(n => n.classList.toggle('active', n.getAttribute('data-view') === id));
-    const titles = {
-      dashboard: ['Overview', 'Staffing health across all role shifts at a glance.'],
-      shifts: ['Role Shifts', 'Define roles, timings, locations, and required headcount.'],
-      signup: ['Volunteer Sign Up', 'Register for an open shift with available spots.'],
-      checkin: ['Check In', 'Mark signed-up volunteers as present at the event.'],
-      settings: ['Data & Reset', 'Seed, export, or reset your volunteer data.']
-    };
     const [t, s] = titles[id] || titles.dashboard;
     pageTitle.textContent = t;
     pageSub.textContent = s;
     if (window.innerWidth <= 900) sidebar.classList.remove('open');
-
     if (id === 'dashboard') renderDashboard();
     if (id === 'shifts') renderShifts();
     if (id === 'signup') renderSignup();
     if (id === 'checkin') renderCheckIn();
+    if (id === 'calendar') renderCalendar();
   }
 
   navItems.forEach(n => {
-    n.addEventListener('click', (e) => {
-      e.preventDefault();
-      showView(n.getAttribute('data-view'));
-    });
+    n.addEventListener('click', (e) => { e.preventDefault(); showView(n.getAttribute('data-view')); });
   });
 
-  /* ---------- Scroll reveal ---------- */
   function observeReveals() {
     const obs = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
@@ -195,17 +183,11 @@
     document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
   }
 
-  /* ---------- Dashboard ---------- */
   function renderDashboard() {
     const total = shifts.length;
     const signedUp = shifts.reduce((a, s) => a + s.volunteers.length, 0);
     let filled = 0, vacant = 0, understaffed = 0;
-    shifts.forEach(s => {
-      const st = shiftStatus(s);
-      if (st === 'filled') filled++;
-      else if (st === 'vacant') vacant++;
-      else understaffed++;
-    });
+    shifts.forEach(s => { const st = shiftStatus(s); if (st === 'filled') filled++; else if (st === 'vacant') vacant++; else understaffed++; });
 
     document.getElementById('statTotalShifts').textContent = total;
     document.getElementById('statSignedUp').textContent = signedUp;
@@ -218,19 +200,16 @@
 
     const totalCap = shifts.reduce((a, s) => a + s.required, 0) || 1;
     const fillPct = Math.round((signedUp / totalCap) * 100);
-    document.querySelector('#statTotalShifts .stat-bar-fill').style.setProperty('--p', '100%');
-    document.querySelector('#statSignedUp .stat-bar-fill').style.setProperty('--p', fillPct + '%');
-    document.querySelector('#statFilled .stat-bar-fill').style.setProperty('--p', total ? Math.round((filled / total) * 100) + '%' : '0%');
-    document.querySelector('#statVacant .stat-bar-fill').style.setProperty('--p', total ? Math.round((vacant / total) * 100) + '%' : '0%');
-    document.querySelector('#statUnderstaffed .stat-bar-fill').style.setProperty('--p', total ? Math.round((understaffed / total) * 100) + '%' : '0%');
+    const fills = document.querySelectorAll('.stat-bar-fill');
+    if (fills[0]) fills[0].style.setProperty('--p', '100%');
+    if (fills[1]) fills[1].style.setProperty('--p', fillPct + '%');
+    if (fills[2]) fills[2].style.setProperty('--p', total ? Math.round((filled / total) * 100) + '%' : '0%');
+    if (fills[3]) fills[3].style.setProperty('--p', total ? Math.round((vacant / total) * 100) + '%' : '0%');
+    if (fills[4]) fills[4].style.setProperty('--p', total ? Math.round((understaffed / total) * 100) + '%' : '0%');
 
-    /* Status board table */
     const wrap = document.getElementById('statusTable');
     let filtered = shifts.filter(s => currentFilter === 'all' || shiftStatus(s) === currentFilter);
-    let html = '<table><thead><tr>' +
-      '<th>Role</th><th>Date</th><th>Time</th><th>Location</th>' +
-      '<th>Signed Up</th><th>Required</th><th>Status</th></tr></thead><tbody>';
-
+    let html = '<table><thead><tr><th>Role</th><th>Date</th><th>Time</th><th>Location</th><th>Signed Up</th><th>Required</th><th>Status</th></tr></thead><tbody>';
     if (filtered.length === 0) {
       html += '<tr><td colspan="7" class="empty-state"><span class="emoji">📭</span><h3>No matching roles</h3><p class="small">Try a different filter or add a new shift.</p></td></tr>';
     } else {
@@ -239,25 +218,14 @@
         const cls = st === 'filled' ? 'filled' : st === 'vacant' ? 'vacant' : 'understaffed';
         const label = st === 'filled' ? 'Filled' : st === 'vacant' ? 'Vacant' : 'Understaffed';
         const icon = st === 'filled' ? '●' : st === 'vacant' ? '○' : '⚠';
-        html += '<tr>' +
-          '<td><strong>' + escapeHtml(s.role) + '</strong></td>' +
-          '<td>' + fmtDate(s.date) + '</td>' +
-          '<td>' + fmtTime(s.startTime) + ' – ' + fmtTime(s.endTime) + '</td>' +
-          '<td class="small">' + escapeHtml(s.location) + '</td>' +
-          '<td>' + s.volunteers.length + '</td>' +
-          '<td>' + s.required + '</td>' +
-          '<td><span class="status ' + cls + '"><span class="dot"></span>' + icon + ' ' + label + '</span></td>' +
-          '</tr>';
+        html += '<tr><td><strong>' + escapeHtml(s.role) + '</strong></td><td>' + fmtDate(s.date) + '</td><td>' + fmtTime(s.startTime) + ' – ' + fmtTime(s.endTime) + '</td><td class="small">' + escapeHtml(s.location) + '</td><td>' + s.volunteers.length + '</td><td>' + s.required + '</td><td><span class="status ' + cls + '"><span class="dot"></span>' + icon + ' ' + label + '</span></td></tr>';
       });
     }
     html += '</tbody></table>';
     wrap.innerHTML = html;
-
-    /* Staffing chart */
     renderChart();
-
-    /* Activity */
     renderActivityList();
+    renderUpcoming();
   }
 
   function renderChart() {
@@ -265,13 +233,11 @@
     wrap.innerHTML = '';
     shifts.forEach(s => {
       const st = shiftStatus(s);
-      const cls = st === 'filled' ? 'primary' : st === 'vacant' ? 'warning' : st === 'understaffed' ? 'warning' : 'danger';
       const pct = s.required ? Math.round((s.volunteers.length / s.required) * 100) : 0;
+      const color = st === 'filled' ? 'var(--success)' : 'var(--warning)';
       const bar = document.createElement('div');
-      bar.className = 'chart-bar chart-bar-' + cls;
-      bar.innerHTML =
-        '<div class="chart-bar-fill" style="height:' + pct + '%;background:' +
-        (cls === 'primary' ? 'var(--success)' : cls === 'warning' ? 'var(--warning)' : 'var(--danger)') + '"></div>' +
+      bar.className = 'chart-bar';
+      bar.innerHTML = '<div class="chart-bar-fill" style="height:' + pct + '%;background:' + color + '"></div>' +
         '<span class="chart-label">' + escapeHtml(s.role).slice(0, 10) + '</span>';
       wrap.appendChild(bar);
     });
@@ -285,16 +251,25 @@
       wrap.innerHTML = '<div class="empty-state" style="padding:28px 16px"><span class="emoji" style="font-size:2rem">—</span><h3 style="font-size:1rem">No activity yet</h3></div>';
       return;
     }
-    wrap.innerHTML = recent.map(a =>
-      '<div class="activity-item">' +
-      '<div class="activity-avatar">' + (a.type === 'ok' ? '✓' : a.type === 'err' ? '✕' : '!') + '</div>' +
-      '<div class="activity-body">' +
-      '<div class="activity-text">' + escapeHtml(a.text) + '</div>' +
-      '<div class="activity-meta">' + a.time + '</div>' +
-      '</div></div>').join('');
+    wrap.innerHTML = recent.map(a => '<div class="activity-item"><div class="activity-avatar">' + (a.type === 'ok' ? '✓' : a.type === 'err' ? '✕' : '!') + '</div><div class="activity-body"><div class="activity-text">' + escapeHtml(a.text) + '</div><div class="activity-meta">' + a.time + '</div></div></div>').join('');
   }
 
-  /* Filter chips */
+  function renderUpcoming() {
+    const wrap = document.getElementById('upcomingList');
+    if (!wrap) return;
+    const now = new Date();
+    const upcoming = reminders.filter(r => new Date(r.date + 'T' + r.time) >= now).sort((a, b) => new Date(a.date + 'T' + a.time) - new Date(b.date + 'T' + b.time)).slice(0, 6);
+    if (upcoming.length === 0) {
+      wrap.innerHTML = '<div class="empty-state" style="padding:24px 16px"><span class="emoji" style="font-size:2rem">📭</span><h3 style="font-size:1rem">No upcoming reminders</h3><p class="small">Add a reminder from the Calendar.</p></div>';
+      return;
+    }
+    wrap.innerHTML = upcoming.map(r => {
+      const dt = new Date(r.date + 'T' + r.time);
+      const shift = r.shiftId ? shifts.find(s => s.id === r.shiftId) : null;
+      return '<div class="upcoming-item"><div class="upcoming-dot ' + (r.shiftId ? 'shift' : '') + '"></div><div class="upcoming-content"><span class="upcoming-title">' + escapeHtml(r.title) + '</span><span class="upcoming-meta">' + dt.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) + ' • ' + dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + '</span>' + (shift ? '<span class="upcoming-shift">Shift: ' + escapeHtml(shift.role) + '</span>' : '') + '</div><div class="upcoming-actions"><button class="btn-icon" onclick="appDeleteReminder(\'' + r.id + '\')" title="Delete">🗑</button></div></div>';
+    }).join('');
+  }
+
   document.querySelectorAll('.chip').forEach(c => {
     c.addEventListener('click', () => {
       document.querySelectorAll('.chip').forEach(x => x.classList.remove('chip-active'));
@@ -304,18 +279,11 @@
     });
   });
 
-  /* ---------- Role Shifts list ---------- */
   function renderShifts() {
     const wrap = document.getElementById('shiftsTable');
     const search = document.getElementById('shiftSearch').value.toLowerCase();
-    let filtered = shifts.filter(s =>
-      s.role.toLowerCase().includes(search) ||
-      s.location.toLowerCase().includes(search)
-    );
-    let html = '<table><thead><tr>' +
-      '<th>Role</th><th>Date</th><th>Time</th><th>Location</th>' +
-      '<th>Signed / Required</th><th>Status</th><th>Volunteers</th><th>Actions</th></tr></thead><tbody>';
-
+    let filtered = shifts.filter(s => s.role.toLowerCase().includes(search) || s.location.toLowerCase().includes(search));
+    let html = '<table><thead><tr><th>Role</th><th>Date</th><th>Time</th><th>Location</th><th>Signed / Required</th><th>Status</th><th>Volunteers</th><th>Actions</th></tr></thead><tbody>';
     if (filtered.length === 0) {
       html += '<tr><td colspan="8" class="empty-state"><span class="emoji">📭</span><h3>No shifts found</h3><p class="small">Try a different search or add a new shift.</p></td></tr>';
     } else {
@@ -323,20 +291,8 @@
         const st = shiftStatus(s);
         const cls = st === 'filled' ? 'filled' : st === 'vacant' ? 'vacant' : 'understaffed';
         const label = st === 'filled' ? 'Filled' : st === 'vacant' ? 'Vacant' : 'Understaffed';
-        const vols = s.volunteers.length ? s.volunteers.map(v =>
-          '<span class="vol-chip ' + (v.checkedIn ? 'checked' : '') + '" title="' + escapeHtml(v.email) + '">' +
-          '<span class="dot"></span>' + escapeHtml(v.name) + (v.checkedIn ? ' ✓' : '') + '</span>').join(' ') :
-          '<span class="small">— no volunteers yet —</span>';
-        html += '<tr>' +
-          '<td><strong>' + escapeHtml(s.role) + '</strong></td>' +
-          '<td>' + fmtDate(s.date) + '</td>' +
-          '<td>' + fmtTime(s.startTime) + ' – ' + fmtTime(s.endTime) + '</td>' +
-          '<td class="small">' + escapeHtml(s.location) + '</td>' +
-          '<td><strong>' + s.volunteers.length + '</strong> / ' + s.required + '</td>' +
-          '<td><span class="status ' + cls + '"><span class="dot"></span>' + label + '</span></td>' +
-          '<td>' + vols + '</td>' +
-          '<td><button class="btn btn-danger btn-sm" onclick="appDeleteShift(\'' + s.id + '\')" title="Delete shift"><span>🗑</span> Delete</button></td>' +
-          '</tr>';
+        const vols = s.volunteers.length ? s.volunteers.map(v => '<span class="vol-chip ' + (v.checkedIn ? 'checked' : '') + '" title="' + escapeHtml(v.email) + '"><span class="dot"></span>' + escapeHtml(v.name) + (v.checkedIn ? ' ✓' : '') + '</span>').join(' ') : '<span class="small">— no volunteers yet —</span>';
+        html += '<tr><td><strong>' + escapeHtml(s.role) + '</strong></td><td>' + fmtDate(s.date) + '</td><td>' + fmtTime(s.startTime) + ' – ' + fmtTime(s.endTime) + '</td><td class="small">' + escapeHtml(s.location) + '</td><td><strong>' + s.volunteers.length + '</strong> / ' + s.required + '</td><td><span class="status ' + cls + '"><span class="dot"></span>' + label + '</span></td><td>' + vols + '</td><td><button class="btn btn-danger btn-sm" onclick="appDeleteShift(\'' + s.id + '\')" title="Delete shift"><span>🗑</span> Delete</button></td></tr>';
       });
     }
     html += '</tbody></table>';
@@ -349,15 +305,11 @@
     if (!confirm('Delete this shift? All volunteers signed up will be removed.')) return;
     shifts = shifts.filter(s => s.id !== id);
     save();
-    renderShifts();
-    renderDashboard();
-    renderSignup();
-    renderCheckIn();
+    renderShifts(); renderDashboard(); renderSignup(); renderCheckIn();
     toast({ type: 'info', title: 'Shift deleted', desc: 'The role shift has been removed.' });
     addActivity('Deleted shift', 'err');
   };
 
-  /* Add shift modal */
   const addShiftModal = document.getElementById('addShiftModal');
   const shiftBackdrop = document.getElementById('shiftBackdrop');
   const openAddShift = document.getElementById('openAddShift');
@@ -383,7 +335,6 @@
     const endTime = form.get('endTime');
     const location = form.get('location').trim();
     const required = parseInt(form.get('required'), 10) || 1;
-
     if (!role || !date || !startTime || !endTime || !location) {
       toast({ type: 'err', title: 'Incomplete form', desc: 'Please fill in all fields before creating the shift.' });
       return;
@@ -392,23 +343,15 @@
       toast({ type: 'err', title: 'Invalid time', desc: 'End time must be after start time.' });
       return;
     }
-
-    const newShift = {
-      id: 's' + Date.now(),
-      role, date, startTime, endTime, location, required, volunteers: []
-    };
+    const newShift = { id: 's' + Date.now(), role, date, startTime, endTime, location, required, volunteers: [] };
     shifts.push(newShift);
     save();
     closeModal();
-    renderShifts();
-    renderDashboard();
-    renderSignup();
-    renderCheckIn();
+    renderShifts(); renderDashboard(); renderSignup(); renderCheckIn();
     toast({ type: 'ok', title: 'Shift created', desc: '"' + escapeHtml(role) + '" is now open for sign-ups.' });
     addActivity('Created shift: ' + escapeHtml(role), 'ok');
   });
 
-  /* ---------- Volunteer Sign Up ---------- */
   function renderSignup() {
     const sel = document.getElementById('signupShiftSelect');
     sel.innerHTML = '<option value="">— Choose a shift with open spots —</option>';
@@ -417,8 +360,7 @@
       if (open > 0) {
         const o = document.createElement('option');
         o.value = s.id;
-        o.textContent = s.role + ' — ' + fmtDate(s.date) + ' ' + fmtTime(s.startTime) + '–' + fmtTime(s.endTime) +
-          ' (' + open + ' spot' + (open > 1 ? 's' : '') + ' left) @ ' + escapeHtml(s.location);
+        o.textContent = s.role + ' — ' + fmtDate(s.date) + ' ' + fmtTime(s.startTime) + '–' + fmtTime(s.endTime) + ' (' + open + ' spot' + (open > 1 ? 's' : '') + ' left) @ ' + escapeHtml(s.location);
         sel.appendChild(o);
       }
     });
@@ -431,38 +373,22 @@
     const name = form.get('name').trim();
     const email = form.get('email').trim();
     const shiftId = form.get('shiftId');
-
-    if (!name || !email || !shiftId) {
-      toast({ type: 'err', title: 'Missing details', desc: 'Please enter your name, email, and select a shift.' });
-      return;
-    }
+    if (!name || !email || !shiftId) { toast({ type: 'err', title: 'Missing details', desc: 'Please enter your name, email, and select a shift.' }); return; }
     const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRe.test(email)) {
-      toast({ type: 'err', title: 'Invalid email', desc: 'Please enter a valid email address.' });
-      return;
-    }
-
+    if (!emailRe.test(email)) { toast({ type: 'err', title: 'Invalid email', desc: 'Please enter a valid email address.' }); return; }
     const shift = shifts.find(s => s.id === shiftId);
     if (!shift) { toast({ type: 'err', title: 'Shift not found' }); return; }
-    if (shift.volunteers.length >= shift.required) {
-      toast({ type: 'err', title: 'Shift full', desc: 'This shift already has enough volunteers.' }); renderSignup(); return;
-    }
-    if (shift.volunteers.some(v => v.email.toLowerCase() === email.toLowerCase())) {
-      toast({ type: 'err', title: 'Already signed up', desc: email + ' is already signed up for this shift.' }); return;
-    }
-
+    if (shift.volunteers.length >= shift.required) { toast({ type: 'err', title: 'Shift full', desc: 'This shift already has enough volunteers.' }); renderSignup(); return; }
+    if (shift.volunteers.some(v => v.email.toLowerCase() === email.toLowerCase())) { toast({ type: 'err', title: 'Already signed up', desc: email + ' is already signed up for this shift.' }); return; }
     shift.volunteers.push({ id: 'v' + Date.now(), name, email, checkedIn: false, checkedInAt: null });
     save();
     signupForm.reset();
     renderSignup();
     toast({ type: 'ok', title: 'Signed up', desc: escapeHtml(name) + ' is now registered for "' + escapeHtml(shift.role) + '".' });
-    renderDashboard();
-    renderShifts();
-    renderCheckIn();
+    renderDashboard(); renderShifts(); renderCheckIn();
     addActivity(name + ' signed up for ' + escapeHtml(shift.role), 'ok');
   });
 
-  /* ---------- Check In ---------- */
   function renderCheckIn() {
     const sel = document.getElementById('checkinShiftSelect');
     sel.innerHTML = '<option value="">— Choose a shift —</option>';
@@ -485,23 +411,11 @@
     if (!id) { checkinList.innerHTML = ''; return; }
     const shift = shifts.find(s => s.id === id);
     if (!shift) return;
-
     let anyPending = false;
-    let html = '<table><thead><tr>' +
-      '<th>Volunteer</th><th>Email</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+    let html = '<table><thead><tr><th>Volunteer</th><th>Email</th><th>Status</th><th>Action</th></tr></thead><tbody>';
     shift.volunteers.forEach(v => {
       anyPending = anyPending || !v.checkedIn;
-      html += '<tr>' +
-        '<td><strong>' + escapeHtml(v.name) + '</strong></td>' +
-        '<td class="small">' + escapeHtml(v.email) + '</td>' +
-        '<td><span class="status ' + (v.checkedIn ? 'checked' : 'pending') + '"><span class="dot"></span>' +
-        (v.checkedIn ? '✓ Checked In' : '○ Pending') + '</span></td>' +
-        '<td>' +
-        (!v.checkedIn
-          ? '<button class="btn btn-primary btn-sm" onclick="appCheckIn(\'' + id + '\', \'' + v.id + '\')" title="Check in volunteer"><span>✓</span> Check In</button>'
-          : '<span class="small pill ok">Done</span>') +
-        '</td>' +
-        '</tr>';
+      html += '<tr><td><strong>' + escapeHtml(v.name) + '</strong></td><td class="small">' + escapeHtml(v.email) + '</td><td><span class="status ' + (v.checkedIn ? 'checked' : 'pending') + '"><span class="dot"></span>' + (v.checkedIn ? '✓ Checked In' : '○ Pending') + '</span></td><td>' + (!v.checkedIn ? '<button class="btn btn-primary btn-sm" onclick="appCheckIn(\'' + id + '\', \'' + v.id + '\')" title="Check in volunteer"><span>✓</span> Check In</button>' : '<span class="small pill ok">Done</span>') + '</td></tr>';
     });
     html += '</tbody></table>';
     checkinList.innerHTML = html;
@@ -522,17 +436,29 @@
     v.checkedInAt = new Date().toISOString();
     save();
     checkinShiftSelect.dispatchEvent(new Event('change'));
-    renderDashboard();
-    renderShifts();
+    renderDashboard(); renderShifts();
     toast({ type: 'ok', title: 'Checked in', desc: escapeHtml(v.name) + ' is now present for "' + escapeHtml(shift.role) + '".' });
     addActivity(v.name + ' checked in for ' + escapeHtml(shift.role), 'ok');
     confetti();
   };
 
-  /* ---------- Data & Reset ---------- */
+  document.getElementById('contactForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const form = new FormData(e.target);
+    const name = form.get('name').trim();
+    const email = form.get('email').trim();
+    const message = form.get('message').trim();
+    if (!name || !email || !message) { toast({ type: 'err', title: 'Incomplete form', desc: 'Please fill in all fields.' }); return; }
+    const contactMsg = document.getElementById('contactMsg');
+    contactMsg.innerHTML = '<div class="msg ok">✓ Message sent to organizer successfully.</div>';
+    e.target.reset();
+    setTimeout(() => { contactMsg.innerHTML = ''; }, 4000);
+    toast({ type: 'ok', title: 'Message sent', desc: 'Your message has been delivered to the organizer.' });
+    addActivity('Contact form submitted by ' + escapeHtml(name), 'info');
+  });
+
   document.getElementById('btnSeed').addEventListener('click', () => {
     shifts = JSON.parse(JSON.stringify(SEED_SHIFTS));
-    activityLog = [];
     save();
     renderDashboard(); renderShifts(); renderSignup(); renderCheckIn();
     toast({ type: 'ok', title: 'Demo data seeded', desc: 'Sample shifts loaded.' });
@@ -541,7 +467,6 @@
   document.getElementById('btnReset').addEventListener('click', () => {
     if (!confirm('Reset ALL data? This cannot be undone.')) return;
     shifts = [];
-    activityLog = [];
     save();
     renderDashboard(); renderShifts(); renderSignup(); renderCheckIn();
     toast({ type: 'info', title: 'Data reset', desc: 'All shifts and volunteers have been cleared.' });
@@ -557,73 +482,22 @@
     toast({ type: 'info', title: 'Exported', desc: 'volunteerhub-data.json saved to your downloads.' });
   });
 
-  /* ---------- Keyboard shortcuts ---------- */
-  document.addEventListener('keydown', (e) => {
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
-    const map = { '1': 'dashboard', '2': 'shifts', '3': 'signup', '4': 'checkin', '5': 'settings' };
-    if (map[e.key]) showView(map[e.key]);
-  });
-
-  /* ---------- Boot ---------- */
-  load();
-  showView('dashboard');
-  observeReveals();
-
-  /* ---------- Reminders storage ---------- */
-  const REMINDER_KEY = 'volunteerhub_reminders_v1';
-  let reminders = [];
-  function loadReminders() {
-    const raw = localStorage.getItem(REMINDER_KEY);
-    reminders = raw ? JSON.parse(raw) : [];
-  }
-  function saveReminders() { localStorage.setItem(REMINDER_KEY, JSON.stringify(reminders)); }
-
-  /* ---------- Contact form ---------- */
-  document.getElementById('contactForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const form = new FormData(e.target);
-    const name = form.get('name').trim();
-    const email = form.get('email').trim();
-    const message = form.get('message').trim();
-    if (!name || !email || !message) {
-      toast({ type: 'err', title: 'Incomplete form', desc: 'Please fill in all fields.' });
-      return;
-    }
-    const contactMsg = document.getElementById('contactMsg');
-    contactMsg.innerHTML = '<div class="msg ok">✓ Message sent to organizer successfully.</div>';
-    e.target.reset();
-    setTimeout(() => { contactMsg.innerHTML = ''; }, 4000);
-    toast({ type: 'ok', title: 'Message sent', desc: 'Your message has been delivered to the organizer.' });
-    addActivity('Contact form submitted by ' + escapeHtml(name), 'info');
-  });
-
-  /* ---------- Calendar ---------- */
-  let calDate = new Date();
-  function calMonthLabel(d) { return d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' }); }
   function renderCalendar() {
-    document.getElementById('calMonthYear').textContent = calMonthLabel(calDate);
-    const grid = document.getElementById('calendarGrid');
-    grid.innerHTML = '';
+    document.getElementById('calMonthYear').textContent = calDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+    const weekdays = document.getElementById('calWeekdays');
+    weekdays.innerHTML = '';
+    ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(day => {
+      const h = document.createElement('div');
+      h.className = 'cal-weekday';
+      h.textContent = day;
+      weekdays.appendChild(h);
+    });
 
     const year = calDate.getFullYear();
     const month = calDate.getMonth();
+    const daysContainer = document.getElementById('calDays');
+    daysContainer.innerHTML = '';
 
-    // Day headers
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    days.forEach(day => {
-      const h = document.createElement('div');
-      h.className = 'cal-day';
-      h.style.fontWeight = '800';
-      h.style.fontSize = '0.75rem';
-      h.style.color = '#94a3b8';
-      h.style.textTransform = 'uppercase';
-      h.style.padding = '12px 8px';
-      h.style.borderBottom = '2px solid ' + getComputedStyle(document.documentElement).getPropertyValue('--line').trim();
-      h.textContent = day;
-      grid.appendChild(h);
-    });
-
-    // Days of month
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const today = new Date();
@@ -632,7 +506,7 @@
     for (let i = 0; i < firstDay; i++) {
       const empty = document.createElement('div');
       empty.className = 'cal-day empty';
-      grid.appendChild(empty);
+      daysContainer.appendChild(empty);
     }
 
     for (let d = 1; d <= daysInMonth; d++) {
@@ -640,57 +514,53 @@
       cell.className = 'cal-day';
       const cellDate = new Date(year, month, d);
       cellDate.setHours(0, 0, 0, 0);
-      const isToday = cellDate.getTime() === today.getTime();
-      if (isToday) cell.classList.add('today');
+      if (cellDate.getTime() === today.getTime()) cell.classList.add('today');
 
       const num = document.createElement('div');
       num.className = 'cal-day-number';
       num.textContent = d;
       cell.appendChild(num);
 
-      const remindersForDay = reminders.filter(r => {
-        const rd = new Date(r.date);
-        rd.setHours(0, 0, 0, 0);
-        return rd.getTime() === cellDate.getTime();
-      });
+      const eventsWrap = document.createElement('div');
+      eventsWrap.className = 'cal-day-events';
 
-      const remWrap = document.createElement('div');
-      remWrap.className = 'cal-reminders';
-      remindersForDay.slice(0, 3).forEach(r => {
+      const dayReminders = reminders.filter(r => { const rd = new Date(r.date); rd.setHours(0, 0, 0, 0); return rd.getTime() === cellDate.getTime(); });
+      dayReminders.slice(0, 3).forEach(r => {
         const chip = document.createElement('div');
-        chip.className = 'cal-reminder ' + (r.shiftId ? 'shift' : 'general');
+        chip.className = 'cal-event ' + (r.shiftId ? 'shift' : 'general');
         chip.textContent = r.title;
-        chip.title = r.description || '';
-        remWrap.appendChild(chip);
+        chip.title = (r.description || '') + ' ' + r.time;
+        eventsWrap.appendChild(chip);
       });
-      if (remindersForDay.length > 3) {
+      if (dayReminders.length > 3) {
         const more = document.createElement('div');
-        more.className = 'cal-reminder';
-        more.textContent = '+ ' + (remindersForDay.length - 3) + ' more';
-        remWrap.appendChild(more);
+        more.className = 'cal-event more';
+        more.textContent = '+ ' + (dayReminders.length - 3) + ' more';
+        eventsWrap.appendChild(more);
       }
-      cell.appendChild(remWrap);
-      grid.appendChild(cell);
+      cell.appendChild(eventsWrap);
+      daysContainer.appendChild(cell);
     }
   }
 
-  document.getElementById('calPrev').addEventListener('click', () => {
-    calDate = new Date(calDate.getFullYear(), calDate.getMonth() - 1, 1);
-    renderCalendar();
-  });
-  document.getElementById('calNext').addEventListener('click', () => {
-    calDate = new Date(calDate.getFullYear(), calDate.getMonth() + 1, 1);
-    renderCalendar();
-  });
+  document.getElementById('calPrev').addEventListener('click', () => { calDate = new Date(calDate.getFullYear(), calDate.getMonth() - 1, 1); renderCalendar(); });
+  document.getElementById('calNext').addEventListener('click', () => { calDate = new Date(calDate.getFullYear(), calDate.getMonth() + 1, 1); renderCalendar(); });
 
-  /* Add Reminder Modal */
+  window.appDeleteReminder = function (id) {
+    if (!confirm('Delete this reminder?')) return;
+    reminders = reminders.filter(r => r.id !== id);
+    saveReminders();
+    renderCalendar(); renderDashboard(); renderUpcoming();
+    toast({ type: 'info', title: 'Reminder deleted', desc: 'The reminder has been removed.' });
+  };
+
   const addReminderModal = document.getElementById('addReminderModal');
   const reminderBackdrop = document.getElementById('reminderBackdrop');
   const openAddReminder = document.getElementById('openAddReminder');
   const closeReminder = document.getElementById('closeReminder');
   const cancelReminder = document.getElementById('cancelReminder');
   const addReminderForm = document.getElementById('addReminderForm');
-  const reminderShiftSelect = document.getElementById('addReminderForm').querySelector('select[name="shiftId"]');
+  const reminderShiftSelect = document.getElementById('reminderShiftSelect');
 
   function openReminderModal() {
     reminderShiftSelect.innerHTML = '<option value="">— None —</option>';
@@ -713,9 +583,7 @@
   closeReminder.addEventListener('click', closeReminderModal);
   cancelReminder.addEventListener('click', closeReminderModal);
   reminderBackdrop.addEventListener('click', closeReminderModal);
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && addReminderModal.style.display === 'block') closeReminderModal();
-  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && addReminderModal.style.display === 'block') closeReminderModal(); });
 
   addReminderForm.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -725,67 +593,23 @@
     const time = form.get('time');
     const description = form.get('description').trim();
     const shiftId = form.get('shiftId') || '';
-
-    if (!title || !date || !time) {
-      toast({ type: 'err', title: 'Incomplete form', desc: 'Please fill in title, date, and time.' });
-      return;
-    }
-
-    reminders.push({
-      id: 'r' + Date.now(),
-      title, date, time, description, shiftId
-    });
+    if (!title || !date || !time) { toast({ type: 'err', title: 'Incomplete form', desc: 'Please fill in title, date, and time.' }); return; }
+    reminders.push({ id: 'r' + Date.now(), title, date, time, description, shiftId });
     saveReminders();
     closeReminderModal();
-    renderCalendar();
-    renderDashboard();
+    renderCalendar(); renderDashboard(); renderUpcoming();
     toast({ type: 'ok', title: 'Reminder created', desc: '"' + escapeHtml(title) + '" scheduled.' });
     addActivity('Calendar reminder: ' + escapeHtml(title), 'ok');
   });
 
-  /* ---------- Navigation update (calendar view) ---------- */
-  const origShowView = showView;
-  showView = function (id) {
-    // include calendar
-    const titles = {
-      dashboard: ['Overview', 'Staffing health across all role shifts at a glance.'],
-      shifts: ['Role Shifts', 'Define roles, timings, locations, and required headcount.'],
-      signup: ['Volunteer Sign Up', 'Register for an open shift with available spots.'],
-      checkin: ['Check In', 'Mark signed-up volunteers as present at the event.'],
-      settings: ['Data & Reset', 'Seed, export, or reset your volunteer data.'],
-      calendar: ['Event Calendar', 'Manage reminders and upcoming event schedules.']
-    };
-    const views = document.querySelectorAll('.view');
-    views.forEach(v => {
-      v.style.display = 'none';
-      v.classList.remove('visible');
-    });
-    const target = document.getElementById('view-' + id);
-    if (target) {
-      target.style.display = 'block';
-      requestAnimationFrame(() => target.classList.add('visible'));
-    }
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.getAttribute('data-view') === id));
-    const [t, s] = titles[id] || titles.dashboard;
-    document.getElementById('pageTitle').textContent = t;
-    document.getElementById('pageSub').textContent = s;
-    if (window.innerWidth <= 900) sidebar.classList.remove('open');
-
-    if (id === 'dashboard') renderDashboard();
-    if (id === 'shifts') renderShifts();
-    if (id === 'signup') renderSignup();
-    if (id === 'checkin') renderCheckIn();
-    if (id === 'calendar') renderCalendar();
-  };
-
-  /* ---------- Keyboard shortcut 6 = calendar ---------- */
-  const origKeydown = document.onkeydown;
   document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
     const map = { '1': 'dashboard', '2': 'shifts', '3': 'signup', '4': 'checkin', '5': 'settings', '6': 'calendar' };
     if (map[e.key]) showView(map[e.key]);
   });
 
-  /* ---------- Boot (reminders) ---------- */
+  load();
   loadReminders();
+  showView('dashboard');
+  observeReveals();
 })();

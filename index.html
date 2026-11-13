@@ -444,12 +444,18 @@
             <button class="btn btn-primary" id="openAddReminder">+ Add Reminder</button>
           </div>
           <div class="calendar-wrap reveal">
-            <div class="calendar-controls">
-              <button class="btn btn-secondary btn-sm" id="calPrev">‹</button>
-              <span class="cal-month-year" id="calMonthYear">November 2026</span>
-              <button class="btn btn-secondary btn-sm" id="calNext">›</button>
+            <div class="calendar-header">
+              <div class="cal-nav">
+                <button class="btn cal-nav-btn" id="calPrev">‹</button>
+                <span class="cal-month-year" id="calMonthYear">November 2026</span>
+                <button class="btn cal-nav-btn" id="calNext">›</button>
+              </div>
+              <button class="btn cal-today-btn" onclick="calDate=new Date();renderCalendar()">Today</button>
             </div>
-            <div class="calendar-grid" id="calendarGrid"></div>
+            <div class="calendar-body">
+              <div class="cal-weekdays" id="calWeekdays"></div>
+              <div class="cal-days" id="calDays"></div>
+            </div>
           </div>
         </div>
 
