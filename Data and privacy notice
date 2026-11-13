@@ -1,0 +1,15 @@
+Data and privacy notice
+
+This is a hackathon prototype, not a production system.
+
+What it collects: a volunteer’s name, email address, chosen shift, and check-in time. Organizers also create shifts (role, location, time, number of volunteers needed).
+
+Where data lives: only in the browser you are using, in local storage. The app has no server or database. It makes no network requests, and it has no analytics, advertising, tracking cookies or third-party scripts. Your data is not sent anywhere or shared with anyone, and nobody else can see it from another device.
+
+Demo data: the volunteers shown at first load are fictional. Please don’t enter real personal information when testing.
+
+Check-in codes: the role codes are stored in the browser too. This is a demonstration of role-based check-in verification, not a secure access-control system.
+
+Your control: “Reset demo data” restores the sample set, and clearing your browser’s site data deletes everything. “Export JSON” downloads a copy of the stored data to your own device.
+
+Limits of this prototype: it has no user accounts, encryption, access logs or data retention policy. It should not be used with real volunteer data until those are added.

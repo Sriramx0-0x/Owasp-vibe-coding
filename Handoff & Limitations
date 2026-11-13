@@ -1,0 +1,21 @@
+# Handoff & Limitations
+
+Core Files
+- Dashboard – Main overview of volunteer count, attendance, and staffing.
+- Volunteers – Volunteer details, assignments, and check-in/check-out.
+- Locations– Staffing requirements, vacancies, and understaffing calculations.
+- Calendar / Comments – Event scheduling and coordination.
+
+Demo & Reset
+The application uses demo data to showcase volunteer attendance and staffing. Demo data can be reset to restore the initial state.
+
+Limitations / Mocked Features
+- Demo volunteer data instead of real registrations.
+- Location assignments are simulated/manual.
+- Notifications and authentication may not be fully integrated.
+- Backend persistence and multi-user synchronization are limited.
+
+Top 3 Improvements for Real Implementation
+1. Add a proper backend and database for persistent, real-time data.
+2. Implement secure authentication and role-based access.
+3. Integrate GPS-based check-in and real notifications.

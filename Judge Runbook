@@ -1,0 +1,10 @@
+# Judge Runbook
+
+1. View Statistics – Check volunteer counts, attendance, vacancies, and understaffed locations.
+3. Manage Volunteers – View volunteer details, assignments, and availability.
+4. Check-in / Check-out – Test attendance tracking and timestamp updates.
+5. Location Staffing – Verify staffing requirements, assigned volunteers, and vacant slots.
+6. Additional Features – Explore calendar, comments, and coordination tools.
+7. Export Data– Export volunteer and attendance records for external use.
+8. Verify Updates – Check whether attendance changes reflect in staffing statistics.
+9. Reset Demo – Restore the initial demo state for another testing session.
