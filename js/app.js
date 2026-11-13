@@ -555,53 +555,6 @@
     toast({ type: 'info', title: 'Reminder deleted', desc: 'The reminder has been removed.' });
   };
 
-  const addReminderModal = document.getElementById('addReminderModal');
-  const reminderBackdrop = document.getElementById('reminderBackdrop');
-  const openAddReminder = document.getElementById('openAddReminder');
-  const closeReminder = document.getElementById('closeReminder');
-  const cancelReminder = document.getElementById('cancelReminder');
-  const addReminderForm = document.getElementById('addReminderForm');
-  const reminderShiftSelect = document.getElementById('reminderShiftSelect');
-
-  function openReminderModal() {
-    reminderShiftSelect.innerHTML = '<option value="">— None —</option>';
-    shifts.forEach(s => {
-      const o = document.createElement('option');
-      o.value = s.id;
-      o.textContent = s.role + ' — ' + fmtDate(s.date);
-      reminderShiftSelect.appendChild(o);
-    });
-    addReminderModal.style.display = 'block';
-    document.body.style.overflow = 'hidden';
-  }
-  function closeReminderModal() {
-    addReminderModal.style.display = 'none';
-    document.body.style.overflow = '';
-    addReminderForm.reset();
-  }
-
-  openAddReminder.addEventListener('click', openReminderModal);
-  closeReminder.addEventListener('click', closeReminderModal);
-  cancelReminder.addEventListener('click', closeReminderModal);
-  reminderBackdrop.addEventListener('click', closeReminderModal);
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && addReminderModal.style.display === 'block') closeReminderModal(); });
-
-  addReminderForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const form = new FormData(addReminderForm);
-    const title = form.get('title').trim();
-    const date = form.get('date');
-    const time = form.get('time');
-    const description = form.get('description').trim();
-    const shiftId = form.get('shiftId') || '';
-    if (!title || !date || !time) { toast({ type: 'err', title: 'Incomplete form', desc: 'Please fill in title, date, and time.' }); return; }
-    reminders.push({ id: 'r' + Date.now(), title, date, time, description, shiftId });
-    saveReminders();
-    closeReminderModal();
-    renderCalendar(); renderDashboard(); renderUpcoming();
-    toast({ type: 'ok', title: 'Reminder created', desc: '"' + escapeHtml(title) + '" scheduled.' });
-    addActivity('Calendar reminder: ' + escapeHtml(title), 'ok');
-  });
 
   document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
@@ -613,42 +566,6 @@
   loadReminders();
   showView('dashboard');
   observeReveals();
-
-  /* ---------- Scroll-turning ID Card ---------- */
-  const idCard = document.querySelector('.id-card');
-  const idCardName = document.getElementById('idCardName');
-  const idCardRole = document.getElementById('idCardRole');
-  const idCardShift = document.getElementById('idCardShift');
-  const idCardCheckin = document.getElementById('idCardCheckin');
-
-  function updateIdCardRotation() {
-    if (!idCard) return;
-    const rect = idCard.getBoundingClientRect();
-    const windowHeight = window.innerHeight;
-    // Calculate how far the card is through the viewport (-1 to 1 range)
-    const center = rect.top + rect.height / 2;
-    const progress = (windowHeight / 2 - center) / (windowHeight / 2);
-    const clamped = Math.max(-1, Math.min(1, progress));
-    // Rotate on Y axis based on scroll position
-    const rotateY = clamped * 20; // max 20deg
-    const rotateX = -clamped * 6; // slight tilt
-    idCard.style.transform = `rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
-  }
-
-  // Populate ID card with first shift data if available
-  function populateIdCard() {
-    if (shifts.length > 0) {
-      const s = shifts[0];
-      if (idCardName) idCardName.textContent = s.role;
-      if (idCardRole) idCardRole.textContent = 'Event Volunteer';
-      if (idCardShift) idCardShift.textContent = s.date + ' ' + s.startTime + '–' + s.endTime;
-      if (idCardCheckin) idCardCheckin.textContent = 'Pending';
-    }
-  }
-
-  window.addEventListener('scroll', updateIdCardRotation);
-  // Initial call
-  updateIdCardRotation();
 
   /* ---------- Auto-apply lusion classes to all cards & titles ---------- */
   document.querySelectorAll('.card').forEach(c => {
@@ -777,4 +694,141 @@
 
   /* ---------- Boot additions ---------- */
   loadComments();
+
+  /* ---------- Floating ID Card - Always visible and useful ---------- */
+  const floatingIdCard = document.getElementById('floatingIdCard');
+  const idCardName = document.getElementById('idCardName');
+  const idCardRole = document.getElementById('idCardRole');
+  const idCardShift = document.getElementById('idCardShift');
+  const idCardStatus = document.getElementById('idCardStatus');
+  const idCardStatusDot = document.getElementById('idCardStatusDot');
+
+  function updateFloatingIdCard() {
+    if (!floatingIdCard) return;
+
+    // Show the card with opacity transition
+    floatingIdCard.classList.add('visible');
+
+    // Find the first volunteer who is checked in, or first shift
+    let activeVolunteer = null;
+    let activeShift = null;
+
+    for (const s of shifts) {
+      for (const v of s.volunteers) {
+        if (v.checkedIn) {
+          activeVolunteer = v;
+          activeShift = s;
+          break;
+        }
+      }
+      if (activeVolunteer) break;
+    }
+
+    if (!activeVolunteer && shifts.length > 0) {
+      activeShift = shifts[0];
+    }
+
+    if (activeVolunteer) {
+      idCardName.textContent = activeVolunteer.name;
+      idCardRole.textContent = 'Checked-in Volunteer';
+      idCardShift.textContent = activeShift.role + ' • ' + activeShift.date;
+      idCardStatus.textContent = 'Checked In';
+      idCardStatusDot.textContent = '● Checked In';
+      idCardStatusDot.style.color = 'var(--success)';
+    } else if (activeShift) {
+      idCardName.textContent = 'No volunteer checked in';
+      idCardRole.textContent = 'Event Staff';
+      idCardShift.textContent = activeShift.role + ' • ' + activeShift.date;
+      idCardStatus.textContent = 'Available';
+      idCardStatusDot.textContent = '○ Available';
+      idCardStatusDot.style.color = 'var(--muted)';
+    } else {
+      idCardName.textContent = '—';
+      idCardRole.textContent = '—';
+      idCardShift.textContent = '—';
+      idCardStatus.textContent = 'No shifts yet';
+      idCardStatusDot.textContent = '○ Idle';
+      idCardStatusDot.style.color = 'var(--muted)';
+    }
+  }
+
+  function updateFloatingIdCardRotation() {
+    if (!floatingIdCard || !document.querySelector('.id-card')) return;
+    const rect = floatingIdCard.getBoundingClientRect();
+    const windowHeight = window.innerHeight;
+    const center = rect.top + rect.height / 2;
+    const progress = (windowHeight / 2 - center) / (windowHeight / 2);
+    const clamped = Math.max(-1, Math.min(1, progress));
+    const rotateY = clamped * 15;
+    const rotateX = -clamped * 5;
+    document.querySelector('.id-card').style.transform = `rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
+  }
+
+  window.addEventListener('scroll', updateFloatingIdCardRotation);
+
+  /* ---------- Reminders Modal (fixed - works reliably) ---------- */
+  const addReminderModal = document.getElementById('addReminderModal');
+  const reminderBackdrop = document.getElementById('reminderBackdrop');
+  const openAddReminder = document.getElementById('openAddReminder');
+  const closeReminder = document.getElementById('closeReminder');
+  const cancelReminder = document.getElementById('cancelReminder');
+  const addReminderForm = document.getElementById('addReminderForm');
+  const reminderShiftSelect = document.getElementById('reminderShiftSelect');
+
+  function openReminderModal() {
+    reminderShiftSelect.innerHTML = '<option value="">— None —</option>';
+    shifts.forEach(s => {
+      const o = document.createElement('option');
+      o.value = s.id;
+      o.textContent = s.role + ' — ' + fmtDate(s.date);
+      reminderShiftSelect.appendChild(o);
+    });
+    addReminderModal.style.display = 'block';
+    addReminderModal.style.opacity = '1';
+    document.body.style.overflow = 'hidden';
+  }
+  function closeReminderModal() {
+    addReminderModal.style.display = 'none';
+    document.body.style.overflow = '';
+    addReminderForm.reset();
+  }
+
+  openAddReminder.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openReminderModal();
+  });
+  closeReminder.addEventListener('click', closeReminderModal);
+  cancelReminder.addEventListener('click', closeReminderModal);
+  reminderBackdrop.addEventListener('click', closeReminderModal);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && addReminderModal.style.display === 'block') closeReminderModal();
+  });
+
+  addReminderForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const form = new FormData(addReminderForm);
+    const title = form.get('title').trim();
+    const date = form.get('date');
+    const time = form.get('time');
+    const description = form.get('description').trim();
+    const shiftId = form.get('shiftId') || '';
+
+    if (!title || !date || !time) {
+      toast({ type: 'err', title: 'Incomplete form', desc: 'Please fill in title, date, and time.' });
+      return;
+    }
+
+    reminders.push({
+      id: 'r' + Date.now(),
+      title, date, time, description, shiftId
+    });
+    saveReminders();
+    closeReminderModal();
+    renderCalendar();
+    renderDashboard();
+    renderUpcoming();
+    toast({ type: 'ok', title: 'Reminder created', desc: '"' + escapeHtml(title) + '" scheduled.' });
+    addActivity('Calendar reminder: ' + escapeHtml(title), 'ok');
+  });
 })();
