@@ -235,8 +235,7 @@ input, select, textarea { font: inherit; }
 
 .section-head { margin-bottom: 28px; }
 .section-title {
-  font-size: 1.9rem; font-weight: 800; color: var(--ink);
-  letter-spacing: -0.8px; margin-bottom: 6px;
+  font-size: 1.9rem; font-weight: 800; color: #ffffff !important; letter-spacing: -0.8px; margin-bottom: 6px;
 }
 .section-sub { color: var(--muted); font-size: 0.95rem; font-weight: 400; }
 
@@ -256,7 +255,7 @@ input, select, textarea { font: inherit; }
   padding: 24px; border-bottom: 1px solid var(--line);
   background: #fafafa;
 }
-.card-title-group h2 { font-size: 1.25rem; font-weight: 800; color: var(--ink); letter-spacing: -0.4px; margin-bottom: 4px; }
+.card-title-group h2 { font-size: 1.25rem; font-weight: 800; color: #ffffff !important; letter-spacing: -0.4px; margin-bottom: 4px; }
 .card-title-group p { color: var(--muted); font-size: 0.88rem; font-weight: 400; }
 .card-body { padding: 24px; }
 
