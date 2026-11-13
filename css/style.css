@@ -458,12 +458,12 @@ input::placeholder { color: #94a3b8; }
 .chip.chip-active { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: 0 4px 12px var(--accent-glow); }
 
 /* Staffing chart */
-.chart-wrap { padding: 16px 0; }
-.chart-bars { display: flex; align-items: flex-end; gap: 14px; height: 180px; padding-bottom: 16px; }
+.chart-wrap { padding: 16px 0 24px 0; }
+.chart-bars { display: flex; align-items: flex-end; gap: 14px; height: 140px; padding-bottom: 30px; }
 .chart-bar {
   flex: 1; background: var(--surface-soft); border: 1px solid var(--line);
   border-radius: 8px 8px 0 0; display: flex; flex-direction: column; align-items: center;
-  gap: 8px; transition: var(--transition-fast); position: relative; overflow: hidden;
+  gap: 6px; transition: var(--transition-fast); position: relative; overflow: hidden;
 }
 .chart-bar:hover { background: var(--accent-soft); border-color: var(--accent); }
 .chart-bar-fill { width: 70%; border-radius: 6px 6px 0 0; transition: height 1s ease; }
@@ -471,7 +471,7 @@ input::placeholder { color: #94a3b8; }
 .chart-bar-success .chart-bar-fill { background: var(--success); }
 .chart-bar-warning .chart-bar-fill { background: var(--warning); }
 .chart-bar-danger .chart-bar-fill { background: var(--danger); }
-.chart-label { font-size: 0.72rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; writing-mode: vertical-rl; text-orientation: mixed; height: 24px; }
+.chart-label { font-size: 0.7rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; text-align: center; line-height: 1.2; }
 
 /* Activity */
 .activity-list { display: flex; flex-direction: column; gap: 12px; }
@@ -823,14 +823,14 @@ input::placeholder { color: #94a3b8; }
 }
 
 /* ============ Fixed staffing chart ============ */
-.chart-wrap { padding: 16px 0; background: var(--surface-soft); border-radius: 14px; border: 1px solid var(--line); }
+.chart-wrap { padding: 16px 0 24px 0; background: var(--surface-soft); border-radius: 14px; border: 1px solid var(--line); }
 .chart-bars {
-  display: flex; align-items: flex-end; gap: 16px; height: 150px;
-  padding: 10px 0 20px 0; position: relative;
+  display: flex; align-items: flex-end; gap: 16px; height: 140px;
+  padding: 10px 0 30px 0; position: relative;
 }
 .chart-bar {
   flex: 1; min-width: 50px; border-radius: 8px 8px 0 0;
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
   transition: var(--transition-fast); position: relative;
 }
 .chart-bar:hover { transform: translateY(-4px); z-index: 3; }
@@ -847,8 +847,7 @@ input::placeholder { color: #94a3b8; }
 }
 .chart-label {
   font-size: 0.68rem; font-weight: 800; color: var(--muted);
-  text-transform: uppercase; letter-spacing: 0.4px; writing-mode: vertical-rl;
-  text-orientation: mixed; height: 22px; white-space: nowrap;
+  text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; text-align: center; line-height: 1.2;
 }
 .chart-bar:hover .chart-label { color: var(--ink); }
 
