@@ -695,76 +695,6 @@
   /* ---------- Boot additions ---------- */
   loadComments();
 
-  /* ---------- Floating ID Card - Always visible and useful ---------- */
-  const floatingIdCard = document.getElementById('floatingIdCard');
-  const idCardName = document.getElementById('idCardName');
-  const idCardRole = document.getElementById('idCardRole');
-  const idCardShift = document.getElementById('idCardShift');
-  const idCardStatus = document.getElementById('idCardStatus');
-  const idCardStatusDot = document.getElementById('idCardStatusDot');
-
-  function updateFloatingIdCard() {
-    if (!floatingIdCard) return;
-
-    // Show the card with opacity transition
-    floatingIdCard.classList.add('visible');
-
-    // Find the first volunteer who is checked in, or first shift
-    let activeVolunteer = null;
-    let activeShift = null;
-
-    for (const s of shifts) {
-      for (const v of s.volunteers) {
-        if (v.checkedIn) {
-          activeVolunteer = v;
-          activeShift = s;
-          break;
-        }
-      }
-      if (activeVolunteer) break;
-    }
-
-    if (!activeVolunteer && shifts.length > 0) {
-      activeShift = shifts[0];
-    }
-
-    if (activeVolunteer) {
-      idCardName.textContent = activeVolunteer.name;
-      idCardRole.textContent = 'Checked-in Volunteer';
-      idCardShift.textContent = activeShift.role + ' • ' + activeShift.date;
-      idCardStatus.textContent = 'Checked In';
-      idCardStatusDot.textContent = '● Checked In';
-      idCardStatusDot.style.color = 'var(--success)';
-    } else if (activeShift) {
-      idCardName.textContent = 'No volunteer checked in';
-      idCardRole.textContent = 'Event Staff';
-      idCardShift.textContent = activeShift.role + ' • ' + activeShift.date;
-      idCardStatus.textContent = 'Available';
-      idCardStatusDot.textContent = '○ Available';
-      idCardStatusDot.style.color = 'var(--muted)';
-    } else {
-      idCardName.textContent = '—';
-      idCardRole.textContent = '—';
-      idCardShift.textContent = '—';
-      idCardStatus.textContent = 'No shifts yet';
-      idCardStatusDot.textContent = '○ Idle';
-      idCardStatusDot.style.color = 'var(--muted)';
-    }
-  }
-
-  function updateFloatingIdCardRotation() {
-    if (!floatingIdCard || !document.querySelector('.id-card')) return;
-    const rect = floatingIdCard.getBoundingClientRect();
-    const windowHeight = window.innerHeight;
-    const center = rect.top + rect.height / 2;
-    const progress = (windowHeight / 2 - center) / (windowHeight / 2);
-    const clamped = Math.max(-1, Math.min(1, progress));
-    const rotateY = clamped * 15;
-    const rotateX = -clamped * 5;
-    document.querySelector('.id-card').style.transform = `rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
-  }
-
-  window.addEventListener('scroll', updateFloatingIdCardRotation);
 
   /* ---------- Reminders Modal (fixed - works reliably) ---------- */
   const addReminderModal = document.getElementById('addReminderModal');
@@ -830,5 +760,100 @@
     renderUpcoming();
     toast({ type: 'ok', title: 'Reminder created', desc: '"' + escapeHtml(title) + '" scheduled.' });
     addActivity('Calendar reminder: ' + escapeHtml(title), 'ok');
+  });
+
+  /* ---------- ID Card Toggle + Popup ---------- */
+  const idCardWrapper = document.getElementById('idCardWrapper');
+  const idCardToggle = document.getElementById('idCardToggle');
+  const idCardPopup = document.getElementById('idCardPopup');
+  const idCardClose = document.getElementById('idCardClose');
+  const idCardName = document.getElementById('idCardName');
+  const idCardRole = document.getElementById('idCardRole');
+  const idCardShift = document.getElementById('idCardShift');
+  const idCardStatus = document.getElementById('idCardStatus');
+  const idCardStatusDot = document.getElementById('idCardStatusDot');
+  let idCardOpen = false;
+
+  function openIdCard() {
+    if (!idCardPopup || !idCardToggle) return;
+    idCardPopup.classList.add('open');
+    idCardToggle.classList.add('open');
+    idCardOpen = true;
+    updateIdCardData();
+  }
+
+  function closeIdCard() {
+    if (!idCardPopup || !idCardToggle) return;
+    idCardPopup.classList.remove('open');
+    idCardToggle.classList.remove('open');
+    idCardOpen = false;
+  }
+
+  function updateIdCardData() {
+    if (!idCardName) return;
+
+    // Find the first volunteer who is checked in, or first shift
+    let activeVolunteer = null;
+    let activeShift = null;
+
+    for (const s of shifts) {
+      for (const v of s.volunteers) {
+        if (v.checkedIn) {
+          activeVolunteer = v;
+          activeShift = s;
+          break;
+        }
+      }
+      if (activeVolunteer) break;
+    }
+
+    if (!activeVolunteer && shifts.length > 0) {
+      activeShift = shifts[0];
+    }
+
+    if (activeVolunteer) {
+      idCardName.textContent = activeVolunteer.name;
+      idCardRole.textContent = 'Checked-in Volunteer';
+      idCardShift.textContent = activeShift.role + ' • ' + activeShift.date;
+      idCardStatus.textContent = 'Checked In';
+      idCardStatusDot.textContent = '● Checked In';
+      idCardStatusDot.style.color = 'var(--success)';
+    } else if (activeShift) {
+      idCardName.textContent = 'No volunteer checked in';
+      idCardRole.textContent = 'Event Staff';
+      idCardShift.textContent = activeShift.role + ' • ' + activeShift.date;
+      idCardStatus.textContent = 'Available';
+      idCardStatusDot.textContent = '○ Available';
+      idCardStatusDot.style.color = 'var(--muted)';
+    } else {
+      idCardName.textContent = '—';
+      idCardRole.textContent = '—';
+      idCardShift.textContent = '—';
+      idCardStatus.textContent = 'No shifts yet';
+      idCardStatusDot.textContent = '○ Idle';
+      idCardStatusDot.style.color = 'var(--muted)';
+    }
+  }
+
+  idCardToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (idCardOpen) closeIdCard(); else openIdCard();
+  });
+
+  idCardClose.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeIdCard();
+  });
+
+  // Close when clicking outside
+  document.addEventListener('click', (e) => {
+    if (idCardOpen && idCardPopup && !idCardPopup.contains(e.target) && !idCardToggle.contains(e.target)) {
+      closeIdCard();
+    }
+  });
+
+  // Close on Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && idCardOpen) closeIdCard();
   });
 })();

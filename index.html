@@ -112,32 +112,37 @@
           <p class="section-sub">Staffing health across all role shifts at a glance.</p>
         </div>
 
-        <!-- Floating ID Card - Always visible, rotates on scroll, shows live data -->
-        <div id="floatingIdCard" class="floating-id-card reveal">
-          <div class="id-card">
-            <div class="id-card-glow"></div>
-            <div class="id-card-content">
-              <div class="id-card-header">
-                <div class="id-card-avatar">VH</div>
-                <div class="id-card-info">
-                  <h3>Event Volunteer Pass</h3>
-                  <p>VolunteerHub • Event Staff</p>
+        <!-- ID Card Toggle Button + Popup -->
+        <div class="id-card-wrapper reveal" id="idCardWrapper">
+          <button class="id-card-toggle" id="idCardToggle" aria-label="Open ID Card" title="Open ID Card">
+            <span class="id-toggle-icon">ID</span>
+          </button>
+          <div class="id-card-popup" id="idCardPopup">
+            <button class="id-card-close" id="idCardClose" aria-label="Close ID Card">✕</button>
+            <div class="id-card">
+              <div class="id-card-glow"></div>
+              <div class="id-card-content">
+                <div class="id-card-header">
+                  <div class="id-card-avatar">VH</div>
+                  <div class="id-card-info">
+                    <h3>Event Volunteer Pass</h3>
+                    <p>VolunteerHub • Event Staff</p>
+                  </div>
+                  <div class="id-card-badge">Staff</div>
                 </div>
-                <div class="id-card-badge">Staff</div>
-              </div>
-              <div class="id-card-body">
-                Name: <strong id="idCardName">—</strong><br />
-                Role: <strong id="idCardRole">—</strong><br />
-                Shift: <strong id="idCardShift">—</strong><br />
-                Status: <strong id="idCardStatus">Pending</strong>
-              </div>
-              <div class="id-card-footer">
-                <div class="id-card-qr">VH</div>
-                <div class="id-card-status-indicator" id="idCardStatusDot">● Active</div>
+                <div class="id-card-body">
+                  Name: <strong id="idCardName">—</strong><br />
+                  Role: <strong id="idCardRole">—</strong><br />
+                  Shift: <strong id="idCardShift">—</strong><br />
+                  Status: <strong id="idCardStatus">Pending</strong>
+                </div>
+                <div class="id-card-footer">
+                  <div class="id-card-qr">VH</div>
+                  <div class="id-card-status-indicator" id="idCardStatusDot">● Active</div>
+                </div>
               </div>
             </div>
           </div>
-          <p class="id-card-hint">Scroll to rotate • Shows your current shift</p>
         </div>
 
         <div class="stat-grid reveal">
