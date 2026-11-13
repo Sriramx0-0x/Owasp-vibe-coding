@@ -1880,3 +1880,53 @@ td:first-child {
   text-shadow: 0 2px 4px rgba(0,0,0,0.8) !important;
 }
 
+
+/* ============ Fix flickering - GPU acceleration ============ */
+.page,
+.view,
+.card,
+.table-wrap,
+table,
+.stat-card,
+.btn {
+  transform: translateZ(0);
+  will-change: auto;
+}
+
+.card,
+.table-wrap {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.view {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Prevent layout thrashing on hover */
+.card:hover {
+  will-change: transform, box-shadow, border-color;
+}
+
+/* Smooth but not flickering transitions */
+* {
+  transition-duration: 0.2s;
+}
+
+.reveal {
+  opacity: 1;
+  transform: none;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: none;
+}
+
+.view.reveal.visible {
+  opacity: 1;
+  transform: none;
+  display: block !important;
+}
+
