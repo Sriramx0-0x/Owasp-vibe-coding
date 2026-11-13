@@ -6,17 +6,21 @@
   <title>VolunteerHub — Event Volunteer Management</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <!-- Animated abstract background layer -->
+  <!-- Animated abstract background -->
   <div class="bg-art">
+    <div class="mesh mesh-1"></div>
+    <div class="mesh mesh-2"></div>
+    <div class="mesh mesh-3"></div>
     <div class="blob blob-1"></div>
     <div class="blob blob-2"></div>
     <div class="blob blob-3"></div>
     <div class="blob blob-4"></div>
     <div class="blob blob-5"></div>
+    <div class="grid-overlay"></div>
   </div>
 
   <aside class="sidebar" id="sidebar">
@@ -28,32 +32,51 @@
         <div class="brand-tag">Event Volunteer Management</div>
       </div>
     </div>
+    <div class="sidebar-divider"></div>
     <nav class="nav">
       <a href="#dashboard" class="nav-item active" data-view="dashboard" id="nav-dashboard">
-        <span class="icon">▲</span> Dashboard
+        <span class="nav-icon">▲</span>
+        <span class="nav-label">Dashboard</span>
+        <span class="nav-dot"></span>
       </a>
       <a href="#shifts" class="nav-item" data-view="shifts" id="nav-shifts">
-        <span class="icon">◆</span> Role Shifts
+        <span class="nav-icon">◆</span>
+        <span class="nav-label">Role Shifts</span>
+        <span class="nav-dot"></span>
       </a>
       <a href="#signup" class="nav-item" data-view="signup" id="nav-signup">
-        <span class="icon">○</span> Volunteer Sign Up
+        <span class="nav-icon">○</span>
+        <span class="nav-label">Volunteer Sign Up</span>
+        <span class="nav-dot"></span>
       </a>
       <a href="#checkin" class="nav-item" data-view="checkin" id="nav-checkin">
-        <span class="icon">▣</span> Check In
+        <span class="nav-icon">▣</span>
+        <span class="nav-label">Check In</span>
+        <span class="nav-dot"></span>
       </a>
       <a href="#settings" class="nav-item" data-view="settings" id="nav-settings">
-        <span class="icon">⚙</span> Data & Reset
+        <span class="nav-icon">⚙</span>
+        <span class="nav-label">Data & Reset</span>
+        <span class="nav-dot"></span>
       </a>
     </nav>
     <div class="nav-footer">
-      <div class="footer-row">
-        <span class="footer-label">Platform</span>
-        <span class="footer-value">localStorage</span>
+      <div class="user-card">
+        <div class="user-avatar">VR</div>
+        <div class="user-info">
+          <div class="user-name">Organizer</div>
+          <div class="user-role">Event Lead</div>
+        </div>
       </div>
-      <div class="footer-divider"></div>
-      <div class="footer-row">
-        <span class="footer-label">Status</span>
-        <span class="footer-value">Online</span>
+      <div class="footer-stats">
+        <div class="stat-mini">
+          <span class="stat-mini-val" id="miniTotal">0</span>
+          <span class="stat-mini-label">shifts</span>
+        </div>
+        <div class="stat-mini">
+          <span class="stat-mini-val" id="miniSigned">0</span>
+          <span class="stat-mini-label">volunteers</span>
+        </div>
       </div>
     </div>
   </aside>
@@ -61,8 +84,15 @@
   <div class="wrapper">
     <header class="topbar">
       <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">☰</button>
-      <h1 class="page-title" id="pageTitle">Dashboard</h1>
-      <div class="topbar-actions">
+      <div class="topbar-center">
+        <h1 class="page-title" id="pageTitle">Dashboard</h1>
+        <div class="page-sub" id="pageSub">Staffing health across all role shifts</div>
+      </div>
+      <div class="topbar-right">
+        <div class="time-badge">
+          <span class="time-label">Now</span>
+          <span class="time-value" id="liveTime">--:--</span>
+        </div>
         <span class="badge" id="liveCount">0 volunteers</span>
       </div>
     </header>
@@ -76,56 +106,108 @@
         </div>
 
         <div class="stat-grid reveal">
-          <div class="stat-card">
-            <div class="stat-meta">
-              <span class="stat-label">Total Shifts</span>
-              <span class="stat-icon">▲</span>
+          <div class="stat-card stat-primary reveal">
+            <div class="stat-inner">
+              <div class="stat-label-wrap">
+                <span class="stat-label">Total Shifts</span>
+                <span class="stat-trend">▲ Active</span>
+              </div>
+              <div class="stat-value" id="statTotalShifts">0</div>
+              <div class="stat-progress">
+                <div class="stat-bar"><div class="stat-bar-fill" style="--p:0%"></div></div>
+              </div>
             </div>
-            <div class="stat-value" id="statTotalShifts">0</div>
           </div>
-          <div class="stat-card">
-            <div class="stat-meta">
-              <span class="stat-label">Signed Up</span>
-              <span class="stat-icon">○</span>
+          <div class="stat-card stat-success reveal">
+            <div class="stat-inner">
+              <div class="stat-label-wrap">
+                <span class="stat-label">Signed Up</span>
+                <span class="stat-trend">● Volunteers</span>
+              </div>
+              <div class="stat-value" id="statSignedUp">0</div>
+              <div class="stat-progress">
+                <div class="stat-bar"><div class="stat-bar-fill" style="--p:0%;background:var(--success)"></div></div>
+              </div>
             </div>
-            <div class="stat-value" id="statSignedUp">0</div>
           </div>
-          <div class="stat-card">
-            <div class="stat-meta">
-              <span class="stat-label">Filled Roles</span>
-              <span class="stat-icon">●</span>
+          <div class="stat-card stat-info reveal">
+            <div class="stat-inner">
+              <div class="stat-label-wrap">
+                <span class="stat-label">Filled Roles</span>
+                <span class="stat-trend">● Fully staffed</span>
+              </div>
+              <div class="stat-value" id="statFilled">0</div>
+              <div class="stat-progress">
+                <div class="stat-bar"><div class="stat-bar-fill" style="--p:0%;background:var(--info)"></div></div>
+              </div>
             </div>
-            <div class="stat-value" id="statFilled">0</div>
           </div>
-          <div class="stat-card stat-warn">
-            <div class="stat-meta">
-              <span class="stat-label">Vacant Roles</span>
-              <span class="stat-icon">◇</span>
+          <div class="stat-card stat-warn reveal">
+            <div class="stat-inner">
+              <div class="stat-label-wrap">
+                <span class="stat-label">Vacant Roles</span>
+                <span class="stat-trend">○ No sign-ups</span>
+              </div>
+              <div class="stat-value" id="statVacant">0</div>
+              <div class="stat-progress">
+                <div class="stat-bar"><div class="stat-bar-fill" style="--p:0%;background:var(--warning)"></div></div>
+              </div>
             </div>
-            <div class="stat-value" id="statVacant">0</div>
           </div>
-          <div class="stat-card stat-danger">
-            <div class="stat-meta">
-              <span class="stat-label">Understaffed</span>
-              <span class="stat-icon">⚠</span>
+          <div class="stat-card stat-danger reveal">
+            <div class="stat-inner">
+              <div class="stat-label-wrap">
+                <span class="stat-label">Understaffed</span>
+                <span class="stat-trend">⚠ Needs attention</span>
+              </div>
+              <div class="stat-value" id="statUnderstaffed">0</div>
+              <div class="stat-progress">
+                <div class="stat-bar"><div class="stat-bar-fill" style="--p:0%;background:var(--danger)"></div></div>
+              </div>
             </div>
-            <div class="stat-value" id="statUnderstaffed">0</div>
           </div>
         </div>
 
-        <div class="card reveal">
-          <div class="card-header">
-            <div class="card-title-group">
-              <h2 class="card-title">Role Status Board</h2>
-              <p class="card-sub">Filled roles are fully staffed; understaffed roles need attention.</p>
-            </div>
-            <div class="legend">
-              <span class="pill ok">✓ Filled</span>
-              <span class="pill warn">⚠ Understaffed</span>
-              <span class="pill empty">○ Vacant</span>
+        <div class="dashboard-rows reveal">
+          <div class="col-main">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <h2 class="card-title">Role Status Board</h2>
+                  <p class="card-sub">Filled roles are fully staffed; understaffed roles need attention.</p>
+                </div>
+                <div class="filter-chips reveal">
+                  <button class="chip chip-active" data-filter="all">All Roles</button>
+                  <button class="chip" data-filter="filled">✓ Filled</button>
+                  <button class="chip" data-filter="understaffed">⚠ Understaffed</button>
+                  <button class="chip" data-filter="vacant">○ Vacant</button>
+                </div>
+              </div>
+              <div class="table-wrap" id="statusTable"></div>
             </div>
           </div>
-          <div class="table-wrap" id="statusTable"></div>
+          <div class="col-side">
+            <div class="card reveal">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <h2 class="card-title">Staffing Distribution</h2>
+                  <p class="card-sub">Volunteers allocated across role shifts.</p>
+                </div>
+              </div>
+              <div class="chart-wrap">
+                <div class="chart-bars" id="staffingChart"></div>
+              </div>
+            </div>
+            <div class="card activity-card reveal">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <h2 class="card-title">Recent Activity</h2>
+                  <p class="card-sub">Latest sign-ups and check-ins.</p>
+                </div>
+              </div>
+              <div class="activity-list" id="activityList"></div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -140,9 +222,15 @@
           <div class="card-header">
             <div class="card-title-group">
               <h2 class="card-title">Active Shifts</h2>
-              <p class="card-sub">Create new shifts or remove existing ones below.</p>
+              <p class="card-sub">Create new shifts or manage existing ones below.</p>
             </div>
-            <button class="btn btn-primary" id="openAddShift">+ Add Shift</button>
+            <div class="toolbar reveal">
+              <div class="search-wrap">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="shiftSearch" placeholder="Search roles, locations…" />
+              </div>
+              <button class="btn btn-primary" id="openAddShift">+ Add Shift</button>
+            </div>
           </div>
           <div class="table-wrap" id="shiftsTable"></div>
         </div>
@@ -268,15 +356,23 @@
               <p class="card-sub">Seed sample data, reset everything, or export a JSON backup.</p>
             </div>
           </div>
-          <div class="form-actions reveal" style="gap:10px">
-            <button class="btn btn-secondary" id="btnSeed">Seed Demo Data</button>
-            <button class="btn btn-outline" id="btnExport">Export JSON</button>
-            <button class="btn btn-danger" id="btnReset">Reset All Data</button>
+          <div class="controls-grid reveal">
+            <button class="btn btn-secondary btn-large" id="btnSeed">Seed Demo Data</button>
+            <button class="btn btn-outline btn-large" id="btnExport">Export JSON</button>
+            <button class="btn btn-danger btn-large" id="btnReset">Reset All Data</button>
+          </div>
+          <div class="keyboard-hint reveal">
+            <p class="hint-label">Keyboard shortcuts</p>
+            <div class="keys">
+              <kbd>1</kbd> Dashboard · <kbd>2</kbd> Shifts · <kbd>3</kbd> Sign Up · <kbd>4</kbd> Check In · <kbd>5</kbd> Settings · <kbd>Esc</kbd> Close
+            </div>
           </div>
         </div>
       </section>
     </main>
   </div>
+
+  <div class="confetti-container" id="confetti"></div>
 
   <script src="js/app.js"></script>
 </body>

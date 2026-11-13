@@ -1,8 +1,7 @@
-/* VolunteerHub — MVP Application Logic (Refined UI/UX) */
+/* VolunteerHub — MVP Application Logic (Polished UI/UX) */
 (function () {
   const STORAGE_KEY = 'volunteerhub_shifts_v1';
 
-  /* ---------- Demo seed data ---------- */
   const SEED_SHIFTS = [
     { id: 's1', role: 'Registration Desk', date: '2026-11-15', startTime: '08:00', endTime: '12:00', location: 'Main Lobby - Hall A', required: 4, volunteers: [] },
     { id: 's2', role: 'Tech Support', date: '2026-11-15', startTime: '10:00', endTime: '14:00', location: 'Workshop Room B', required: 3, volunteers: [] },
@@ -12,14 +11,26 @@
   ];
 
   let shifts = [];
+  let activityLog = [];
+  let currentFilter = 'all';
 
   /* ---------- Storage ---------- */
   function load() {
     const raw = localStorage.getItem(STORAGE_KEY);
     shifts = raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(SEED_SHIFTS));
+    activityLog = [];
     if (!raw) save();
   }
   function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(shifts)); }
+
+  function addActivity(text, type = 'info') {
+    activityLog.unshift({ text, type, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+    if (activityLog.length > 50) activityLog.pop();
+    if (document.getElementById('view-checkin').style.display === 'block' ||
+        document.getElementById('view-dashboard').style.display === 'block') {
+      renderActivityList();
+    }
+  }
 
   /* ---------- Helpers ---------- */
   function escapeHtml(text) {
@@ -33,8 +44,6 @@
     const dt = new Date(d + 'T00:00');
     return dt.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
   }
-
-  /* Status of a shift: filled / understaffed / vacant */
   function shiftStatus(shift) {
     const signed = shift.volunteers.length;
     if (signed >= shift.required) return 'filled';
@@ -42,7 +51,7 @@
     return 'vacant';
   }
 
-  /* ---------- Toast notifications ---------- */
+  /* ---------- Toast ---------- */
   const toastContainer = (() => {
     let el = document.getElementById('toastContainer');
     if (!el) {
@@ -72,74 +81,70 @@
     setTimeout(() => appCloseToast(id), duration);
     return id;
   }
-
   window.appCloseToast = function (id) {
     const el = document.getElementById(id);
     if (!el) return;
     el.classList.add('exit');
-    setTimeout(() => { if (el.parentElement) el.parentElement.removeChild(el); }, 300);
+    setTimeout(() => { if (el.parentElement) el.parentElement.removeChild(el); }, 350);
   };
 
-  /* ---------- Sidebar: collapse + resize ============ */
+  /* Confetti */
+  function confetti() {
+    const container = document.getElementById('confetti');
+    const colors = ['#2563eb', '#059669', '#d97706', '#f472b6', '#34d399', '#a78bfa', '#fbbf24'];
+    for (let i = 0; i < 60; i++) {
+      const p = document.createElement('div');
+      p.className = 'confetti-piece';
+      p.style.left = Math.random() * 100 + 'vw';
+      p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+      p.style.animationDelay = (Math.random() * 0.6) + 's';
+      p.style.animationDuration = (1.2 + Math.random() * 1.2) + 's';
+      container.appendChild(p);
+      setTimeout(() => p.remove(), 2000);
+    }
+  }
+
+  /* ---------- Sidebar: collapse + resize ---------- */
   const sidebar = document.getElementById('sidebar');
   const resizeHandle = document.getElementById('sidebarResize');
   const menuToggle = document.getElementById('menuToggle');
-  const navItems = document.querySelectorAll('.nav-item');
-
   let isResizing = false;
-  let sidebarCollapsed = false;
 
-  function toggleSidebar() {
-    sidebarCollapsed = !sidebarCollapsed;
-    sidebar.classList.toggle('collapsed', sidebarCollapsed);
-    // mobile overlay behavior
-    if (window.innerWidth > 900) return;
-    sidebar.classList.toggle('open', sidebarCollapsed);
-  }
-
-  // brand click collapses on desktop
-  document.querySelector('.brand').addEventListener('click', (e) => {
-    if (window.innerWidth > 900) toggleSidebar();
+  document.querySelector('.brand').addEventListener('click', () => {
+    if (window.innerWidth > 900) sidebar.classList.toggle('collapsed');
   });
+  menuToggle.addEventListener('click', (e) => { e.stopPropagation(); sidebar.classList.toggle('open'); });
 
-  menuToggle.addEventListener('click', (e) => {
-    e.stopPropagation();
-    sidebar.classList.toggle('open');
-  });
-
-  // close sidebar when clicking a nav link on mobile
-  navItems.forEach(n => {
-    n.addEventListener('click', () => {
-      if (window.innerWidth <= 900) sidebar.classList.remove('open');
-    });
-  });
-
-  // desktop resize drag
   resizeHandle.addEventListener('mousedown', (e) => {
     isResizing = true;
     document.body.style.cursor = 'ew-resize';
     document.body.style.userSelect = 'none';
     e.preventDefault();
   });
-
   document.addEventListener('mousemove', (e) => {
     if (!isResizing) return;
-    const newWidth = e.clientX;
-    const min = 72;
-    const max = 420;
-    const width = Math.min(Math.max(newWidth, min), max);
-    document.documentElement.style.setProperty('--sidebar-width', width + 'px');
+    const w = Math.min(Math.max(e.clientX, 76), 420);
+    document.documentElement.style.setProperty('--sidebar-width', w + 'px');
   });
-
   document.addEventListener('mouseup', () => {
     isResizing = false;
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
   });
 
+  /* ---------- Live clock ---------- */
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('liveTime').textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
   /* ---------- Navigation ---------- */
+  const navItems = document.querySelectorAll('.nav-item');
   const views = document.querySelectorAll('.view');
   const pageTitle = document.getElementById('pageTitle');
+  const pageSub = document.getElementById('pageSub');
 
   function showView(id) {
     views.forEach(v => {
@@ -149,18 +154,20 @@
     const target = document.getElementById('view-' + id);
     if (target) {
       target.style.display = 'block';
-      // trigger reveal animation
       requestAnimationFrame(() => target.classList.add('visible'));
     }
-    navItems.forEach(n => {
-      n.classList.toggle('active', n.getAttribute('data-view') === id);
-    });
+    navItems.forEach(n => n.classList.toggle('active', n.getAttribute('data-view') === id));
     const titles = {
-      dashboard: 'Overview', shifts: 'Role Shifts',
-      signup: 'Volunteer Sign Up', checkin: 'Check In', settings: 'Data & Reset'
+      dashboard: ['Overview', 'Staffing health across all role shifts at a glance.'],
+      shifts: ['Role Shifts', 'Define roles, timings, locations, and required headcount.'],
+      signup: ['Volunteer Sign Up', 'Register for an open shift with available spots.'],
+      checkin: ['Check In', 'Mark signed-up volunteers as present at the event.'],
+      settings: ['Data & Reset', 'Seed, export, or reset your volunteer data.']
     };
-    pageTitle.textContent = titles[id] || 'Overview';
-    if (sidebar.classList.contains('open') && window.innerWidth <= 900) sidebar.classList.remove('open');
+    const [t, s] = titles[id] || titles.dashboard;
+    pageTitle.textContent = t;
+    pageSub.textContent = s;
+    if (window.innerWidth <= 900) sidebar.classList.remove('open');
 
     if (id === 'dashboard') renderDashboard();
     if (id === 'shifts') renderShifts();
@@ -175,19 +182,17 @@
     });
   });
 
-  document.getElementById('storageInfo' && 'storageInfo') && null; // no-op safety
-
-  /* ---------- Scroll reveal for all sections ============ */
+  /* ---------- Scroll reveal ---------- */
   function observeReveals() {
-    const observer = new IntersectionObserver((entries) => {
+    const obs = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           entry.target.classList.add('visible');
-          observer.unobserve(entry.target);
+          obs.unobserve(entry.target);
         }
       });
-    }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
   }
 
   /* ---------- Dashboard ---------- */
@@ -207,17 +212,29 @@
     document.getElementById('statFilled').textContent = filled;
     document.getElementById('statVacant').textContent = vacant;
     document.getElementById('statUnderstaffed').textContent = understaffed;
+    document.getElementById('miniTotal').textContent = total;
+    document.getElementById('miniSigned').textContent = signedUp;
     document.getElementById('liveCount').textContent = signedUp + ' volunteers';
 
+    const totalCap = shifts.reduce((a, s) => a + s.required, 0) || 1;
+    const fillPct = Math.round((signedUp / totalCap) * 100);
+    document.querySelector('#statTotalShifts .stat-bar-fill').style.setProperty('--p', '100%');
+    document.querySelector('#statSignedUp .stat-bar-fill').style.setProperty('--p', fillPct + '%');
+    document.querySelector('#statFilled .stat-bar-fill').style.setProperty('--p', total ? Math.round((filled / total) * 100) + '%' : '0%');
+    document.querySelector('#statVacant .stat-bar-fill').style.setProperty('--p', total ? Math.round((vacant / total) * 100) + '%' : '0%');
+    document.querySelector('#statUnderstaffed .stat-bar-fill').style.setProperty('--p', total ? Math.round((understaffed / total) * 100) + '%' : '0%');
+
+    /* Status board table */
     const wrap = document.getElementById('statusTable');
+    let filtered = shifts.filter(s => currentFilter === 'all' || shiftStatus(s) === currentFilter);
     let html = '<table><thead><tr>' +
       '<th>Role</th><th>Date</th><th>Time</th><th>Location</th>' +
       '<th>Signed Up</th><th>Required</th><th>Status</th></tr></thead><tbody>';
 
-    if (shifts.length === 0) {
-      html += '<tr><td colspan="7" class="empty-state"><span class="emoji">📭</span><h3>No shifts yet</h3><p class="small">Create your first role shift under Role Shifts.</p></td></tr>';
+    if (filtered.length === 0) {
+      html += '<tr><td colspan="7" class="empty-state"><span class="emoji">📭</span><h3>No matching roles</h3><p class="small">Try a different filter or add a new shift.</p></td></tr>';
     } else {
-      shifts.forEach(s => {
+      filtered.forEach(s => {
         const st = shiftStatus(s);
         const cls = st === 'filled' ? 'filled' : st === 'vacant' ? 'vacant' : 'understaffed';
         const label = st === 'filled' ? 'Filled' : st === 'vacant' ? 'Vacant' : 'Understaffed';
@@ -235,19 +252,74 @@
     }
     html += '</tbody></table>';
     wrap.innerHTML = html;
+
+    /* Staffing chart */
+    renderChart();
+
+    /* Activity */
+    renderActivityList();
   }
+
+  function renderChart() {
+    const wrap = document.getElementById('staffingChart');
+    wrap.innerHTML = '';
+    shifts.forEach(s => {
+      const st = shiftStatus(s);
+      const cls = st === 'filled' ? 'primary' : st === 'vacant' ? 'warning' : st === 'understaffed' ? 'warning' : 'danger';
+      const pct = s.required ? Math.round((s.volunteers.length / s.required) * 100) : 0;
+      const bar = document.createElement('div');
+      bar.className = 'chart-bar chart-bar-' + cls;
+      bar.innerHTML =
+        '<div class="chart-bar-fill" style="height:' + pct + '%;background:' +
+        (cls === 'primary' ? 'var(--success)' : cls === 'warning' ? 'var(--warning)' : 'var(--danger)') + '"></div>' +
+        '<span class="chart-label">' + escapeHtml(s.role).slice(0, 10) + '</span>';
+      wrap.appendChild(bar);
+    });
+  }
+
+  function renderActivityList() {
+    const wrap = document.getElementById('activityList');
+    if (!wrap) return;
+    const recent = activityLog.slice(0, 6);
+    if (recent.length === 0) {
+      wrap.innerHTML = '<div class="empty-state" style="padding:28px 16px"><span class="emoji" style="font-size:2rem">—</span><h3 style="font-size:1rem">No activity yet</h3></div>';
+      return;
+    }
+    wrap.innerHTML = recent.map(a =>
+      '<div class="activity-item">' +
+      '<div class="activity-avatar">' + (a.type === 'ok' ? '✓' : a.type === 'err' ? '✕' : '!') + '</div>' +
+      '<div class="activity-body">' +
+      '<div class="activity-text">' + escapeHtml(a.text) + '</div>' +
+      '<div class="activity-meta">' + a.time + '</div>' +
+      '</div></div>').join('');
+  }
+
+  /* Filter chips */
+  document.querySelectorAll('.chip').forEach(c => {
+    c.addEventListener('click', () => {
+      document.querySelectorAll('.chip').forEach(x => x.classList.remove('chip-active'));
+      c.classList.add('chip-active');
+      currentFilter = c.getAttribute('data-filter');
+      renderDashboard();
+    });
+  });
 
   /* ---------- Role Shifts list ---------- */
   function renderShifts() {
     const wrap = document.getElementById('shiftsTable');
+    const search = document.getElementById('shiftSearch').value.toLowerCase();
+    let filtered = shifts.filter(s =>
+      s.role.toLowerCase().includes(search) ||
+      s.location.toLowerCase().includes(search)
+    );
     let html = '<table><thead><tr>' +
       '<th>Role</th><th>Date</th><th>Time</th><th>Location</th>' +
       '<th>Signed / Required</th><th>Status</th><th>Volunteers</th><th>Actions</th></tr></thead><tbody>';
 
-    if (shifts.length === 0) {
-      html += '<tr><td colspan="8" class="empty-state"><span class="emoji">📭</span><h3>No shifts yet</h3><p class="small">Click "+ Add Shift" to create your first role.</p></td></tr>';
+    if (filtered.length === 0) {
+      html += '<tr><td colspan="8" class="empty-state"><span class="emoji">📭</span><h3>No shifts found</h3><p class="small">Try a different search or add a new shift.</p></td></tr>';
     } else {
-      shifts.forEach(s => {
+      filtered.forEach(s => {
         const st = shiftStatus(s);
         const cls = st === 'filled' ? 'filled' : st === 'vacant' ? 'vacant' : 'understaffed';
         const label = st === 'filled' ? 'Filled' : st === 'vacant' ? 'Vacant' : 'Understaffed';
@@ -271,6 +343,8 @@
     wrap.innerHTML = html;
   }
 
+  document.getElementById('shiftSearch').addEventListener('input', renderShifts);
+
   window.appDeleteShift = function (id) {
     if (!confirm('Delete this shift? All volunteers signed up will be removed.')) return;
     shifts = shifts.filter(s => s.id !== id);
@@ -280,6 +354,7 @@
     renderSignup();
     renderCheckIn();
     toast({ type: 'info', title: 'Shift deleted', desc: 'The role shift has been removed.' });
+    addActivity('Deleted shift', 'err');
   };
 
   /* Add shift modal */
@@ -330,6 +405,7 @@
     renderSignup();
     renderCheckIn();
     toast({ type: 'ok', title: 'Shift created', desc: '"' + escapeHtml(role) + '" is now open for sign-ups.' });
+    addActivity('Created shift: ' + escapeHtml(role), 'ok');
   });
 
   /* ---------- Volunteer Sign Up ---------- */
@@ -383,6 +459,7 @@
     renderDashboard();
     renderShifts();
     renderCheckIn();
+    addActivity(name + ' signed up for ' + escapeHtml(shift.role), 'ok');
   });
 
   /* ---------- Check In ---------- */
@@ -431,7 +508,7 @@
     if (!anyPending) {
       const celeb = document.createElement('div');
       celeb.className = 'empty-state';
-      celeb.innerHTML = '<span class="emoji">🎉</span><h3>All checked in</h3><p class="small">Every volunteer for this shift is present.</p>';
+      celeb.innerHTML = '<span class="emoji" style="font-size:2.5rem">🎉</span><h3 style="font-size:1.1rem">All checked in</h3><p class="small">Every volunteer for this shift is present.</p>';
       checkinList.innerHTML = '';
       checkinList.appendChild(celeb);
     }
@@ -448,11 +525,14 @@
     renderDashboard();
     renderShifts();
     toast({ type: 'ok', title: 'Checked in', desc: escapeHtml(v.name) + ' is now present for "' + escapeHtml(shift.role) + '".' });
+    addActivity(v.name + ' checked in for ' + escapeHtml(shift.role), 'ok');
+    confetti();
   };
 
   /* ---------- Data & Reset ---------- */
   document.getElementById('btnSeed').addEventListener('click', () => {
     shifts = JSON.parse(JSON.stringify(SEED_SHIFTS));
+    activityLog = [];
     save();
     renderDashboard(); renderShifts(); renderSignup(); renderCheckIn();
     toast({ type: 'ok', title: 'Demo data seeded', desc: 'Sample shifts loaded.' });
@@ -461,6 +541,7 @@
   document.getElementById('btnReset').addEventListener('click', () => {
     if (!confirm('Reset ALL data? This cannot be undone.')) return;
     shifts = [];
+    activityLog = [];
     save();
     renderDashboard(); renderShifts(); renderSignup(); renderCheckIn();
     toast({ type: 'info', title: 'Data reset', desc: 'All shifts and volunteers have been cleared.' });
@@ -474,6 +555,13 @@
     a.href = url; a.download = 'volunteerhub-data.json'; a.click();
     URL.revokeObjectURL(url);
     toast({ type: 'info', title: 'Exported', desc: 'volunteerhub-data.json saved to your downloads.' });
+  });
+
+  /* ---------- Keyboard shortcuts ---------- */
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+    const map = { '1': 'dashboard', '2': 'shifts', '3': 'signup', '4': 'checkin', '5': 'settings' };
+    if (map[e.key]) showView(map[e.key]);
   });
 
   /* ---------- Boot ---------- */
