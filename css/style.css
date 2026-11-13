@@ -305,7 +305,7 @@ input, select, textarea { font: inherit; }
 /* Tables */
 .table-wrap { overflow-x: auto; padding: 0 24px 26px 24px; }
 table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-th { text-align: left; color: var(--muted); font-weight: 700; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.6px; padding: 16px 12px; border-bottom: 2px solid var(--line); background: rgba(255,255,255,0.03) !important; }
+th { text-align: left; color: #ffffff !important; font-weight: 700; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.6px; padding: 16px 12px; border-bottom: 2px solid var(--line); background: rgba(255,255,255,0.03) !important; }
 td { padding: 16px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
 tr:last-child td { border-bottom: none; }
 tr:hover td { background: #f8fafc; }
@@ -913,7 +913,7 @@ body { background-color: #020617; }
 .stat-bar { background: rgba(255,255,255,0.05); }
 .table-wrap { background: transparent; }
 table { color: #f8fafc; }
-th { color: #e2e8f0; background: rgba(15, 23, 42, 0.5) !important; }
+th { color: #ffffff !important; background: rgba(15, 23, 42, 0.5) !important; }
 td { color: #e2e8f0; border-bottom: 1px solid rgba(255,255,255,0.04); }
 tr:hover td { background: rgba(255,255,255,0.03); }
 .vol-chip { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: #e2e8f0; }
@@ -1708,7 +1708,7 @@ input::placeholder { color: #64748b; }
 }
 
 .card.lusion-card th {
-  color: #94a3b8 !important;
+  color: #ffffff !important;
   border-bottom-color: rgba(255,255,255,0.15) !important;
 }
 
@@ -1850,7 +1850,7 @@ table th,
 .card .table-wrap th {
   background: rgba(15, 23, 42, 0.5) !important;
   background-color: rgba(15, 23, 42, 0.5) !important;
-  color: #e2e8f0 !important;
+  color: #ffffff !important;
   border-color: rgba(255,255,255,0.08) !important;
   font-weight: 800 !important;
   font-size: 0.7rem !important;
@@ -2040,7 +2040,7 @@ table th,
 .card .table-wrap th {
   background: rgba(15, 23, 42, 0.5) !important;
   background-color: rgba(15, 23, 42, 0.5) !important;
-  color: #e2e8f0 !important;
+  color: #ffffff !important;
   border-color: rgba(255,255,255,0.08) !important;
   transition: none !important;
 }
@@ -2179,7 +2179,7 @@ table th,
 .card .table-wrap th {
   background: transparent !important;
   background-color: transparent !important;
-  color: #94a3b8 !important;
+  color: #ffffff !important;
   border-color: rgba(255,255,255,0.08) !important;
   transition: none !important;
 }
