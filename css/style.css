@@ -2107,3 +2107,170 @@ table tr:hover td,
   transition: opacity 0.4s ease, transform 0.4s ease !important;
 }
 
+
+/* ============ NUCLEAR FLICKER FIX - Remove ALL background transitions ============ */
+
+/* Remove ALL transition on background-color for everything */
+*, *::before, *::after {
+  transition-property: transform, opacity, box-shadow, border-color, color !important;
+  transition-property: transform, opacity, box-shadow, border-color !important;
+}
+
+/* Force all tables to transparent */
+table,
+.table-wrap,
+.table-wrap table,
+.table-wrap tr,
+.table-wrap td,
+.table-wrap th,
+#shiftsTable table,
+#shiftsTable tr,
+#shiftsTable td,
+#shiftsTable th,
+#statusTable table,
+#statusTable tr,
+#statusTable td,
+#statusTable th {
+  background: transparent !important;
+  background-color: transparent !important;
+  transition: none !important;
+}
+
+/* Force all cards to transparent dark */
+.card,
+.card-body,
+.card-header,
+.card-footer {
+  background: rgba(15, 23, 42, 0.3) !important;
+  background-color: rgba(15, 23, 42, 0.3) !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+  transition: none !important;
+}
+
+.card:hover {
+  background: rgba(15, 23, 42, 0.4) !important;
+  border-color: rgba(255,255,255,0.12) !important;
+}
+
+/* Stat cards */
+.stat-card {
+  background: rgba(15, 23, 42, 0.35) !important;
+  background-color: rgba(15, 23, 42, 0.35) !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+  transition: none !important;
+}
+
+.stat-card:hover {
+  background: rgba(15, 23, 42, 0.45) !important;
+}
+
+/* All table headers - no white */
+table th,
+.table-wrap th,
+#shiftsTable th,
+#statusTable th,
+.card .table-wrap th {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: #94a3b8 !important;
+  border-color: rgba(255,255,255,0.08) !important;
+  transition: none !important;
+}
+
+/* All table cells - no white */
+table td,
+.table-wrap td,
+#shiftsTable td,
+#statusTable td,
+.card .table-wrap td {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: #e2e8f0 !important;
+  border-color: rgba(255,255,255,0.06) !important;
+  transition: none !important;
+}
+
+/* Table rows - no white */
+table tr,
+.table-wrap tr,
+#shiftsTable tr,
+#statusTable tr,
+.card .table-wrap tr {
+  background: transparent !important;
+  background-color: transparent !important;
+  transition: none !important;
+}
+
+table tr:hover,
+.table-wrap tr:hover,
+#shiftsTable tr:hover,
+#statusTable tr:hover {
+  background: rgba(255,255,255,0.02) !important;
+  transition: none !important;
+}
+
+/* Views - transparent */
+.view {
+  background: transparent !important;
+  background-color: transparent !important;
+  transition: opacity 0.4s ease, transform 0.4s ease !important;
+}
+
+.view.reveal {
+  background: transparent !important;
+}
+
+/* Modals - transparent dark */
+.modal-panel,
+.modal-backdrop {
+  background: rgba(15, 23, 42, 0.9) !important;
+  background-color: rgba(15, 23, 42, 0.9) !important;
+  transition: none !important;
+}
+
+.modal-header {
+  background: rgba(255,255,255,0.03) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+}
+
+/* Stat cards */
+.stat-card {
+  background: rgba(15, 23, 42, 0.35) !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+}
+
+/* Toast */
+.toast {
+  background: rgba(15, 23, 42, 0.9) !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+}
+
+/* Sidebar - solid dark */
+.sidebar {
+  background: #0b1021 !important;
+  background-color: #0b1021 !important;
+}
+
+/* Topbar - transparent dark */
+.topbar {
+  background: rgba(3, 7, 18, 0.8) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+/* Page - transparent */
+.page {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Body - dark */
+body {
+  background: #020617 !important;
+  background-color: #020617 !important;
+}
+
+html {
+  background: #020617 !important;
+  background-color: #020617 !important;
+}
+
