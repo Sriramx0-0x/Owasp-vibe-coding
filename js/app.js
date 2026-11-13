@@ -155,7 +155,8 @@
     checkin: ['Check In', 'Mark signed-up volunteers as present at the event.'],
     settings: ['Data & Reset', 'Seed, export, or reset your volunteer data.'],
     calendar: ['Event Calendar', 'Manage reminders and upcoming event schedules.'],
-    comments: ['Volunteer Feedback', 'Share updates and feedback with other volunteers.']
+    comments: ['Volunteer Feedback', 'Share updates and feedback with other volunteers.'],
+    checkout: ['Check Out', 'Mark checked-in volunteers as having left the event.']
   };
 
   function showView(id) {
@@ -176,6 +177,7 @@
     if (id === 'checkin') renderCheckIn();
     if (id === 'calendar') renderCalendar();
     if (id === 'comments') renderComments();
+    if (id === 'checkout') renderCheckout();
   }
 
   navItems.forEach(n => {
@@ -494,6 +496,49 @@
     toast({ type: 'info', title: 'Checked out', desc: escapeHtml(v.name) + ' has checked out from "' + escapeHtml(shift.role) + '" at ' + timeStr + '.' });
     addActivity(v.name + ' checked out from ' + escapeHtml(shift.role) + ' at ' + timeStr, 'info');
   };
+
+  function renderCheckout() {
+    const sel = document.getElementById('checkoutShiftSelect');
+    sel.innerHTML = '<option value="">— Choose a shift —</option>';
+    shifts.forEach(s => {
+      const checkedIn = s.volunteers.filter(v => v.checkedIn);
+      if (checkedIn.length > 0) {
+        const o = document.createElement('option');
+        o.value = s.id;
+        o.textContent = s.role + ' — ' + fmtDate(s.date) + ' (' + checkedIn.length + ' checked in)';
+        sel.appendChild(o);
+      }
+    });
+    document.getElementById('checkoutList').innerHTML = '';
+    renderDashboard();
+  }
+
+  const checkoutShiftSelect = document.getElementById('checkoutShiftSelect');
+  const checkoutList = document.getElementById('checkoutList');
+
+  checkoutShiftSelect.addEventListener('change', () => {
+    const id = checkoutShiftSelect.value;
+    if (!id) { checkoutList.innerHTML = ''; return; }
+    const shift = shifts.find(s => s.id === id);
+    if (!shift) return;
+    const checkedIn = shift.volunteers.filter(v => v.checkedIn);
+    if (checkedIn.length === 0) {
+      checkoutList.innerHTML = '<div class="empty-state" style="padding:28px 16px;text-align:center"><span class="emoji" style="font-size:2rem">—</span><h3 style="font-size:1rem">No one checked in</h3><p class="small">No volunteers are currently checked in for this shift.</p></div>';
+      return;
+    }
+    let html = '<table><thead><tr><th>Volunteer</th><th>Email</th><th>Checked In</th><th>Action</th></tr></thead><tbody>';
+    checkedIn.forEach(v => {
+      const ciTime = v.checkedInAt ? new Date(v.checkedInAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—';
+      html += '<tr>' +
+        '<td><strong>' + escapeHtml(v.name) + '</strong></td>' +
+        '<td class="small">' + escapeHtml(v.email) + '</td>' +
+        '<td class="small">' + ciTime + '</td>' +
+        '<td><button class="btn btn-secondary btn-sm" onclick="appCheckOut(\'' + id + '\', \'' + v.id + '\')" title="Check out volunteer"><span>⏰</span> Check Out</button></td>' +
+        '</tr>';
+    });
+    html += '</tbody></table>';
+    checkoutList.innerHTML = html;
+  });
 
   document.getElementById('contactForm').addEventListener('submit', (e) => {
     e.preventDefault();
