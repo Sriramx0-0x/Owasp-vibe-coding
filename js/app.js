@@ -648,4 +648,16 @@
   window.addEventListener('scroll', updateIdCardRotation);
   // Initial call
   updateIdCardRotation();
+
+  /* ---------- Auto-apply lusion classes to all cards & titles ---------- */
+  document.querySelectorAll('.card').forEach(c => {
+    if (!c.classList.contains('lusion-card')) c.classList.add('lusion-card');
+  });
+  document.querySelectorAll('.section-title').forEach(t => {
+    if (!t.classList.contains('lusion-title')) t.classList.add('lusion-title');
+  });
+  document.querySelectorAll('.btn-primary').forEach(b => {
+    if (!b.classList.contains('lusion-btn')) b.classList.add('lusion-btn');
+  });
+  document.getElementById('pageTitle') && (document.getElementById('pageTitle').classList.add('text-gradient'));
 })();
