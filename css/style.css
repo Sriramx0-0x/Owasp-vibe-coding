@@ -716,3 +716,149 @@ input::placeholder { color: #94a3b8; }
   .cal-event { font-size: 0.65rem; max-width: 90px; padding: 2px 6px; }
 }
 
+
+/* ============ Stripe-style animated gradient background ============ */
+.bg-mesh {
+  position: absolute; inset: 0; z-index: 0;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+  overflow: hidden;
+}
+.gradient-sheet {
+  position: absolute; border-radius: 50%;
+  filter: blur(80px); opacity: 0.18;
+  animation: meshDrift 24s infinite alternate ease-in-out;
+}
+.sheet-1 { width: 700px; height: 700px; background: #60a5fa; top: -250px; left: -180px; animation-duration: 26s; }
+.sheet-2 { width: 600px; height: 600px; background: #a78bfa; top: 55%; right: -150px; animation-duration: 22s; animation-delay: -6s; }
+.sheet-3 { width: 500px; height: 500px; background: #f472b6; bottom: -120px; left: 25%; animation-duration: 24s; animation-delay: -10s; }
+.sheet-4 { width: 420px; height: 420px; background: #34d399; top: 35%; left: 60%; animation-duration: 20s; animation-delay: -14s; }
+.sheet-5 { width: 340px; height: 340px; background: #fbbf24; bottom: 30%; right: 35%; animation-duration: 28s; animation-delay: -18s; }
+@keyframes meshDrift {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(80px, -60px) scale(1.1); }
+}
+.mesh-grid {
+  position: absolute; inset: 0;
+  background-image: linear-gradient(#cbd5e1 1px, transparent 1px),
+                    linear-gradient(90deg, #cbd5e1 1px, transparent 1px);
+  background-size: 40px 40px; opacity: 0.25; pointer-events: none;
+}
+
+/* ============ Gradient tabs on cards ============ */
+.card {
+  position: relative; overflow: hidden;
+}
+.card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, #60a5fa, #a78bfa, #f472b6, #34d399);
+  transform: scaleX(0); transform-origin: left;
+  transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  z-index: 2;
+}
+.card:hover::before { transform: scaleX(1); }
+.card.grad-purple::before { background: linear-gradient(90deg, #a78bfa, #c084fc, #f472b6); }
+.card.grad-blue::before { background: linear-gradient(90deg, #60a5fa, #3b82f6, #2563eb); }
+.card.grad-green::before { background: linear-gradient(90deg, #34d399, #22c55e, #059669); }
+.card.grad-orange::before { background: linear-gradient(90deg, #fbbf24, #f59e0b, #d97706); }
+.card.grad-red::before { background: linear-gradient(90deg, #f87171, #ef4444, #dc2626); }
+
+/* ============ Scroll-turning ID Card ============ */
+.id-card-section {
+  padding: 60px 0 40px 0; position: relative; z-index: 10;
+}
+.id-card-container {
+  perspective: 1200px; height: 420px; display: flex; justify-content: center; align-items: center;
+}
+.id-card {
+  width: 340px; height: 210px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid var(--line); border-radius: 20px;
+  box-shadow: 0 25px 50px -12px rgba(2, 6, 23, 0.15);
+  position: relative; overflow: hidden;
+  transform-style: preserve-3d;
+  transition: transform 0.1s ease-out;
+}
+.id-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 45px;
+  background: linear-gradient(90deg, #60a5fa, #a78bfa, #f472b6, #34d399);
+  z-index: 1;
+}
+.id-card-glow {
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.6), transparent 70%);
+  opacity: 0; transition: opacity 0.4s ease; pointer-events: none; z-index: 0;
+}
+.id-card:hover .id-card-glow { opacity: 1; }
+.id-card-content {
+  position: relative; z-index: 3; padding: 30px 24px; height: 100%;
+  display: flex; flex-direction: column; justify-content: space-between;
+}
+.id-card-header {
+  display: flex; align-items: center; gap: 14px;
+}
+.id-card-avatar {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: linear-gradient(135deg, #60a5fa, #2563eb);
+  display: grid; place-items: center; font-weight: 800; font-size: 1.1rem; color: #fff;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+}
+.id-card-info h3 { font-size: 1.05rem; font-weight: 800; color: var(--ink); margin-bottom: 2px; letter-spacing: -0.3px; }
+.id-card-info p { font-size: 0.78rem; color: var(--muted); font-weight: 500; }
+.id-card-badge {
+  margin-left: auto; padding: 6px 12px; border-radius: 8px;
+  background: #f8fafc; border: 1px solid var(--line);
+  font-size: 0.72rem; font-weight: 800; color: var(--muted); text-transform: uppercase;
+}
+.id-card-body { font-size: 0.85rem; color: var(--ink-soft); line-height: 1.6; margin-top: 8px; }
+.id-card-footer {
+  display: flex; align-items: center; justify-content: space-between; margin-top: 14px;
+  padding-top: 14px; border-top: 1px solid var(--line);
+}
+.id-card-qr {
+  width: 36px; height: 36px; background: var(--ink); border-radius: 6px;
+  display: grid; place-items: center; font-size: 0.65rem; color: #fff;
+}
+.id-card-status {
+  font-size: 0.75rem; font-weight: 800; color: var(--success);
+}
+
+/* ============ Fixed staffing chart ============ */
+.chart-wrap { padding: 16px 0; background: var(--surface-soft); border-radius: 14px; border: 1px solid var(--line); }
+.chart-bars {
+  display: flex; align-items: flex-end; gap: 16px; height: 150px;
+  padding: 10px 0 20px 0; position: relative;
+}
+.chart-bar {
+  flex: 1; min-width: 50px; border-radius: 8px 8px 0 0;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  transition: var(--transition-fast); position: relative;
+}
+.chart-bar:hover { transform: translateY(-4px); z-index: 3; }
+.chart-bar-fill {
+  width: 56%; border-radius: 6px 6px 0 0;
+  background: linear-gradient(180deg, var(--success) 0%, #059669 100%);
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+  transition: height 1.2s cubic-bezier(0.23, 1, 0.32, 1);
+  position: relative; overflow: hidden;
+}
+.chart-bar-fill::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, transparent 100%);
+}
+.chart-label {
+  font-size: 0.68rem; font-weight: 800; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.4px; writing-mode: vertical-rl;
+  text-orientation: mixed; height: 22px; white-space: nowrap;
+}
+.chart-bar:hover .chart-label { color: var(--ink); }
+
+/* Responsive ID card */
+@media (max-width: 900px) {
+  .id-card-container { height: 340px; }
+  .id-card { width: 290px; height: 180px; }
+}
+@media (max-width: 600px) {
+  .id-card-container { height: 300px; }
+  .id-card { width: 260px; height: 160px; }
+}
+

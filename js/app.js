@@ -612,4 +612,40 @@
   loadReminders();
   showView('dashboard');
   observeReveals();
+
+  /* ---------- Scroll-turning ID Card ---------- */
+  const idCard = document.querySelector('.id-card');
+  const idCardName = document.getElementById('idCardName');
+  const idCardRole = document.getElementById('idCardRole');
+  const idCardShift = document.getElementById('idCardShift');
+  const idCardCheckin = document.getElementById('idCardCheckin');
+
+  function updateIdCardRotation() {
+    if (!idCard) return;
+    const rect = idCard.getBoundingClientRect();
+    const windowHeight = window.innerHeight;
+    // Calculate how far the card is through the viewport (-1 to 1 range)
+    const center = rect.top + rect.height / 2;
+    const progress = (windowHeight / 2 - center) / (windowHeight / 2);
+    const clamped = Math.max(-1, Math.min(1, progress));
+    // Rotate on Y axis based on scroll position
+    const rotateY = clamped * 20; // max 20deg
+    const rotateX = -clamped * 6; // slight tilt
+    idCard.style.transform = `rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
+  }
+
+  // Populate ID card with first shift data if available
+  function populateIdCard() {
+    if (shifts.length > 0) {
+      const s = shifts[0];
+      if (idCardName) idCardName.textContent = s.role;
+      if (idCardRole) idCardRole.textContent = 'Event Volunteer';
+      if (idCardShift) idCardShift.textContent = s.date + ' ' + s.startTime + '–' + s.endTime;
+      if (idCardCheckin) idCardCheckin.textContent = 'Pending';
+    }
+  }
+
+  window.addEventListener('scroll', updateIdCardRotation);
+  // Initial call
+  updateIdCardRotation();
 })();

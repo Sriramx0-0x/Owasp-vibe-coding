@@ -11,16 +11,13 @@
 </head>
 <body>
   <!-- Animated abstract background -->
-  <div class="bg-art">
-    <div class="mesh mesh-1"></div>
-    <div class="mesh mesh-2"></div>
-    <div class="mesh mesh-3"></div>
-    <div class="blob blob-1"></div>
-    <div class="blob blob-2"></div>
-    <div class="blob blob-3"></div>
-    <div class="blob blob-4"></div>
-    <div class="blob blob-5"></div>
-    <div class="grid-overlay"></div>
+  <div class="bg-mesh">
+    <div class="gradient-sheet sheet-1"></div>
+    <div class="gradient-sheet sheet-2"></div>
+    <div class="gradient-sheet sheet-3"></div>
+    <div class="gradient-sheet sheet-4"></div>
+    <div class="gradient-sheet sheet-5"></div>
+    <div class="mesh-grid"></div>
   </div>
 
   <aside class="sidebar" id="sidebar">
@@ -110,8 +107,38 @@
           <p class="section-sub">Staffing health across all role shifts at a glance.</p>
         </div>
 
+        <!-- Scroll-turning ID Card -->
+        <div class="id-card-section reveal">
+          <div class="id-card-container">
+            <div class="id-card">
+              <div class="id-card-glow"></div>
+              <div class="id-card-content">
+                <div class="id-card-header">
+                  <div class="id-card-avatar">VH</div>
+                  <div class="id-card-info">
+                    <h3>Event Volunteer Pass</h3>
+                    <p>VolunteerHub • Event Staff</p>
+                  </div>
+                  <div class="id-card-badge">Staff</div>
+                </div>
+                <div class="id-card-body">
+                  Name: <strong id="idCardName">—</strong><br />
+                  Role: <strong id="idCardRole">—</strong><br />
+                  Shift: <strong id="idCardShift">—</strong><br />
+                  Check-in: <strong id="idCardCheckin">Pending</strong>
+                </div>
+                <div class="id-card-footer">
+                  <div class="id-card-qr">VH</div>
+                  <div class="id-card-status">● Active</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p style="text-align:center;color:var(--muted);font-size:0.85rem;font-weight:600;margin-top:8px;">Scroll to rotate your volunteer ID card</p>
+        </div>
+
         <div class="stat-grid reveal">
-          <div class="stat-card stat-primary reveal">
+          <div class="stat-card stat-primary reveal grad-blue">
             <div class="stat-inner">
               <div class="stat-label-wrap">
                 <span class="stat-label">Total Shifts</span>
@@ -123,7 +150,7 @@
               </div>
             </div>
           </div>
-          <div class="stat-card stat-success reveal">
+          <div class="stat-card stat-success reveal grad-green">
             <div class="stat-inner">
               <div class="stat-label-wrap">
                 <span class="stat-label">Signed Up</span>
@@ -135,7 +162,7 @@
               </div>
             </div>
           </div>
-          <div class="stat-card stat-info reveal">
+          <div class="stat-card stat-info reveal grad-purple">
             <div class="stat-inner">
               <div class="stat-label-wrap">
                 <span class="stat-label">Filled Roles</span>
@@ -147,7 +174,7 @@
               </div>
             </div>
           </div>
-          <div class="stat-card stat-warn reveal">
+          <div class="stat-card stat-warn reveal grad-orange">
             <div class="stat-inner">
               <div class="stat-label-wrap">
                 <span class="stat-label">Vacant Roles</span>
@@ -159,7 +186,7 @@
               </div>
             </div>
           </div>
-          <div class="stat-card stat-danger reveal">
+          <div class="stat-card stat-danger reveal grad-red">
             <div class="stat-inner">
               <div class="stat-label-wrap">
                 <span class="stat-label">Understaffed</span>
@@ -175,7 +202,7 @@
 
         <div class="dashboard-rows reveal">
           <div class="col-main">
-            <div class="card">
+            <div class="card grad-purple">
               <div class="card-header">
                 <div class="card-title-group">
                   <h2 class="card-title">Role Status Board</h2>
@@ -192,7 +219,7 @@
             </div>
           </div>
           <div class="col-side">
-            <div class="card reveal">
+            <div class="card grad-blue">
               <div class="card-header">
                 <div class="card-title-group">
                   <h2 class="card-title">Staffing Distribution</h2>
@@ -203,7 +230,7 @@
                 <div class="chart-bars" id="staffingChart"></div>
               </div>
             </div>
-            <div class="card activity-card reveal">
+            <div class="card grad-green activity-card reveal">
               <div class="card-header">
                 <div class="card-title-group">
                   <h2 class="card-title">Recent Activity</h2>
@@ -227,7 +254,7 @@
         </div>
 
         <!-- Contact Organizer -->
-        <div class="card reveal">
+        <div class="card grad-orange reveal">
           <div class="card-header">
             <div class="card-title-group">
               <h2 class="card-title">Contact Organizer</h2>
