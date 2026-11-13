@@ -627,8 +627,10 @@
       dayReminders.slice(0, 3).forEach(r => {
         const chip = document.createElement('div');
         chip.className = 'cal-event ' + (r.shiftId ? 'shift' : 'general');
-        chip.textContent = r.title;
-        chip.title = (r.description || '') + ' ' + r.time;
+        const shift = r.shiftId ? shifts.find(s => s.id === r.shiftId) : null;
+        const label = r.personName ? escapeHtml(r.personName) : (shift ? escapeHtml(shift.role) : escapeHtml(r.title));
+        chip.textContent = label;
+        chip.title = (r.description || '') + '\n' + r.time + (r.personName ? '\nPerson: ' + escapeHtml(r.personName) : '') + (shift ? '\nShift: ' + escapeHtml(shift.role) : '');
         eventsWrap.appendChild(chip);
       });
       if (dayReminders.length > 3) {
@@ -660,6 +662,7 @@
   const cancelReminder = document.getElementById('cancelReminder');
   const addReminderForm = document.getElementById('addReminderForm');
   const reminderShiftSelect = document.getElementById('reminderShiftSelect');
+  const reminderPersonSelect = document.getElementById('reminderPersonSelect');
 
   function openReminderModal() {
     reminderShiftSelect.innerHTML = '<option value="">— None —</option>';
@@ -669,6 +672,20 @@
       o.textContent = s.role + ' — ' + fmtDate(s.date);
       reminderShiftSelect.appendChild(o);
     });
+
+    // Populate person dropdown with all unique volunteer names
+    reminderPersonSelect.innerHTML = '<option value="">— Select a volunteer (optional) —</option>';
+    const volunteerNames = new Set();
+    shifts.forEach(s => {
+      s.volunteers.forEach(v => volunteerNames.add(v.name));
+    });
+    [...volunteerNames].sort().forEach(name => {
+      const o = document.createElement('option');
+      o.value = name;
+      o.textContent = name;
+      reminderPersonSelect.appendChild(o);
+    });
+
     addReminderModal.style.display = 'block';
     addReminderModal.style.opacity = '1';
     document.body.style.overflow = 'hidden';
@@ -699,8 +716,9 @@
     const time = form.get('time');
     const description = form.get('description').trim();
     const shiftId = form.get('shiftId') || '';
+    const personName = form.get('personName') || '';
     if (!title || !date || !time) { toast({ type: 'err', title: 'Incomplete form', desc: 'Please fill in title, date, and time.' }); return; }
-    reminders.push({ id: 'r' + Date.now(), title, date, time, description, shiftId });
+    reminders.push({ id: 'r' + Date.now(), title, date, time, description, shiftId, personName });
     saveReminders();
     closeReminderModal();
     renderCalendar(); renderDashboard(); renderUpcoming();

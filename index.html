@@ -561,23 +561,31 @@
               </div>
               <div class="form-row">
                 <div class="form-group">
-                  <label>Date</label>
+                  <label>Reminder Date</label>
                   <input type="date" name="date" required />
                 </div>
                 <div class="form-group">
-                  <label>Time</label>
+                  <label>Reminder Time</label>
                   <input type="time" name="time" required />
                 </div>
               </div>
-              <div class="form-group">
-                <label>Description</label>
-                <textarea name="description" rows="3" placeholder="Optional details…"></textarea>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Person Name</label>
+                  <select name="personName" id="reminderPersonSelect">
+                    <option value="">— Select a volunteer (optional) —</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Related Shift</label>
+                  <select name="shiftId" id="reminderShiftSelect">
+                    <option value="">— None —</option>
+                  </select>
+                </div>
               </div>
               <div class="form-group">
-                <label>Related Shift (optional)</label>
-                <select name="shiftId">
-                  <option value="">— None —</option>
-                </select>
+                <label>Description / Notice</label>
+                <textarea name="description" rows="3" placeholder="Add reminder details…"></textarea>
               </div>
               <div class="form-actions">
                 <button type="button" class="btn btn-secondary" id="cancelReminder">Cancel</button>
