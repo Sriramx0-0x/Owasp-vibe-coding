@@ -209,8 +209,6 @@
     document.getElementById('statFilled').textContent = filled;
     document.getElementById('statVacant').textContent = vacant;
     document.getElementById('statUnderstaffed').textContent = understaffed;
-    document.getElementById('miniTotal').textContent = total;
-    document.getElementById('miniSigned').textContent = checkedInCount;
     document.getElementById('liveCount').textContent = checkedInCount;
     const liveCountEl = document.getElementById('liveCount');
     const btn = document.getElementById('badgeToggle');
