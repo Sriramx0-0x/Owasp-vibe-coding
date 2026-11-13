@@ -229,7 +229,7 @@
     let filtered = shifts.filter(s => currentFilter === 'all' || shiftStatus(s) === currentFilter);
     let html = '<table><thead><tr><th>Role</th><th>Date</th><th>Time</th><th>Location</th><th>Signed Up</th><th>Required</th><th>Status</th></tr></thead><tbody>';
     if (filtered.length === 0) {
-      html += '<tr><td colspan="7" class="empty-state"><span class="emoji">📭</span><h3>No matching roles</h3><p class="small">Try a different filter or add a new shift.</p></td></tr>';
+      html += '<tr><td colspan="7" class="empty-state"><h3>No matching roles</h3><p class="small">Try a different filter or add a new shift.</p></td></tr>';
     } else {
       filtered.forEach(s => {
         const st = shiftStatus(s);
@@ -278,13 +278,13 @@
     const now = new Date();
     const upcoming = reminders.filter(r => new Date(r.date + 'T' + r.time) >= now).sort((a, b) => new Date(a.date + 'T' + a.time) - new Date(b.date + 'T' + b.time)).slice(0, 6);
     if (upcoming.length === 0) {
-      wrap.innerHTML = '<div class="empty-state" style="padding:24px 16px"><span class="emoji" style="font-size:2rem">📭</span><h3 style="font-size:1rem">No upcoming reminders</h3><p class="small">Add a reminder from the Calendar.</p></div>';
+      wrap.innerHTML = '<div class="empty-state" style="padding:24px 16px"><h3 style="font-size:1rem">No upcoming reminders</h3><p class="small">Add a reminder from the Calendar.</p></div>';
       return;
     }
     wrap.innerHTML = upcoming.map(r => {
       const dt = new Date(r.date + 'T' + r.time);
       const shift = r.shiftId ? shifts.find(s => s.id === r.shiftId) : null;
-      return '<div class="upcoming-item"><div class="upcoming-dot ' + (r.shiftId ? 'shift' : '') + '"></div><div class="upcoming-content"><span class="upcoming-title">' + escapeHtml(r.title) + '</span><span class="upcoming-meta">' + dt.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) + ' • ' + dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + '</span>' + (shift ? '<span class="upcoming-shift">Shift: ' + escapeHtml(shift.role) + '</span>' : '') + '</div><div class="upcoming-actions"><button class="btn-icon" onclick="appDeleteReminder(\'' + r.id + '\')" title="Delete">🗑</button></div></div>';
+      return '<div class="upcoming-item"><div class="upcoming-dot ' + (r.shiftId ? 'shift' : '') + '"></div><div class="upcoming-content"><span class="upcoming-title">' + escapeHtml(r.title) + '</span><span class="upcoming-meta">' + dt.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }) + ' • ' + dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + '</span>' + (shift ? '<span class="upcoming-shift">Shift: ' + escapeHtml(shift.role) + '</span>' : '') + '</div><div class="upcoming-actions"><button class="btn-icon" onclick="appDeleteReminder(\'' + r.id + '\')" title="Delete">Delete</button></div></div>';
     }).join('');
   }
 
@@ -322,14 +322,14 @@
     let filtered = shifts.filter(s => s.role.toLowerCase().includes(search) || s.location.toLowerCase().includes(search));
     let html = '<table><thead><tr><th>Role</th><th>Date</th><th>Time</th><th>Location</th><th>Signed / Required</th><th>Status</th><th>Volunteers</th><th>Actions</th></tr></thead><tbody>';
     if (filtered.length === 0) {
-      html += '<tr><td colspan="8" class="empty-state"><span class="emoji">📭</span><h3>No shifts found</h3><p class="small">Try a different search or add a new shift.</p></td></tr>';
+      html += '<tr><td colspan="8" class="empty-state"><h3>No shifts found</h3><p class="small">Try a different search or add a new shift.</p></td></tr>';
     } else {
       filtered.forEach(s => {
         const st = shiftStatus(s);
         const cls = st === 'filled' ? 'filled' : st === 'vacant' ? 'vacant' : 'understaffed';
         const label = st === 'filled' ? 'Filled' : st === 'vacant' ? 'Vacant' : 'Understaffed';
-        const vols = s.volunteers.length ? s.volunteers.map(v => '<span class="vol-chip ' + (v.checkedIn ? 'checked' : '') + '" title="' + escapeHtml(v.email) + '"><span class="dot"></span>' + escapeHtml(v.name) + (v.checkedIn ? ' ✓' : '') + '</span>').join(' ') : '<span class="small">— no volunteers yet —</span>';
-        html += '<tr><td><strong>' + escapeHtml(s.role) + '</strong></td><td>' + fmtDate(s.date) + '</td><td>' + fmtTime(s.startTime) + ' – ' + fmtTime(s.endTime) + '</td><td class="small">' + escapeHtml(s.location) + '</td><td><strong>' + s.volunteers.length + '</strong> / ' + s.required + '</td><td><span class="status ' + cls + '"><span class="dot"></span>' + label + '</span></td><td>' + vols + '</td><td><button class="btn btn-danger btn-sm" onclick="appDeleteShift(\'' + s.id + '\')" title="Delete shift"><span>🗑</span> Delete</button></td></tr>';
+        const vols = s.volunteers.length ? s.volunteers.map(v => '<span class="vol-chip ' + (v.checkedIn ? 'checked' : '') + '" title="' + escapeHtml(v.email) + '"><span class="dot"></span>' + escapeHtml(v.name) + '</span>').join(' ') : '<span class="small">— no volunteers yet —</span>';
+        html += '<tr><td><strong>' + escapeHtml(s.role) + '</strong></td><td>' + fmtDate(s.date) + '</td><td>' + fmtTime(s.startTime) + ' – ' + fmtTime(s.endTime) + '</td><td class="small">' + escapeHtml(s.location) + '</td><td><strong>' + s.volunteers.length + '</strong> / ' + s.required + '</td><td><span class="status ' + cls + '"><span class="dot"></span>' + label + '</span></td><td>' + vols + '</td><td><button class="btn btn-danger btn-sm" onclick="appDeleteShift(\'' + s.id + '\')" title="Delete shift">Delete</button></td></tr>';
       });
     }
     html += '</tbody></table>';
@@ -453,14 +453,14 @@
     let html = '<table><thead><tr><th>Volunteer</th><th>Email</th><th>Status</th><th>Action</th></tr></thead><tbody>';
     shift.volunteers.forEach(v => {
       anyPending = anyPending || !v.checkedIn;
-      html += '<tr><td><strong>' + escapeHtml(v.name) + '</strong></td><td class="small">' + escapeHtml(v.email) + '</td><td><span class="status ' + (v.checkedIn ? 'checked' : 'pending') + '"><span class="dot"></span>' + (v.checkedIn ? '✓ Checked In' : '○ Pending') + '</span></td><td>' + (!v.checkedIn ? '<button class="btn btn-primary btn-sm" onclick="appCheckIn(\'' + id + '\', \'' + v.id + '\')" title="Check in volunteer"><span>✓</span> Check In</button>' : '<button class="btn btn-secondary btn-sm" onclick="appCheckOut(\'' + id + '\', \'' + v.id + '\')" title="Check out volunteer"><span>⏰</span> Check Out</button>') + '</td></tr>';
+      html += '<tr><td><strong>' + escapeHtml(v.name) + '</strong></td><td class="small">' + escapeHtml(v.email) + '</td><td><span class="status ' + (v.checkedIn ? 'checked' : 'pending') + '"><span class="dot"></span>' + (v.checkedIn ? 'Checked In' : 'Pending') + '</span></td><td>' + (!v.checkedIn ? '<button class="btn btn-primary btn-sm" onclick="appCheckIn(\'' + id + '\', \'' + v.id + '\')" title="Check in volunteer">Check In</button>' : '<button class="btn btn-secondary btn-sm" onclick="appCheckOut(\'' + id + '\', \'' + v.id + '\')" title="Check out volunteer">Check Out</button>') + '</td></tr>';
     });
     html += '</tbody></table>';
     checkinList.innerHTML = html;
     if (!anyPending) {
       const celeb = document.createElement('div');
       celeb.className = 'empty-state';
-      celeb.innerHTML = '<span class="emoji" style="font-size:2.5rem">🎉</span><h3 style="font-size:1.1rem">All checked in</h3><p class="small">Every volunteer for this shift is present.</p>';
+      celeb.innerHTML = '<h3 style="font-size:1.1rem">All checked in</h3><p class="small">Every volunteer for this shift is present.</p>';
       checkinList.innerHTML = '';
       checkinList.appendChild(celeb);
     }
@@ -533,7 +533,7 @@
         '<td><strong>' + escapeHtml(v.name) + '</strong></td>' +
         '<td class="small">' + escapeHtml(v.email) + '</td>' +
         '<td class="small">' + ciTime + '</td>' +
-        '<td><button class="btn btn-secondary btn-sm" onclick="appCheckOut(\'' + id + '\', \'' + v.id + '\')" title="Check out volunteer"><span>⏰</span> Check Out</button></td>' +
+        '<td><button class="btn btn-secondary btn-sm" onclick="appCheckOut(\'' + id + '\', \'' + v.id + '\')" title="Check out volunteer">Check Out</button></td>' +
         '</tr>';
     });
     html += '</tbody></table>';
@@ -548,7 +548,7 @@
     const message = form.get('message').trim();
     if (!name || !email || !message) { toast({ type: 'err', title: 'Incomplete form', desc: 'Please fill in all fields.' }); return; }
     const contactMsg = document.getElementById('contactMsg');
-    contactMsg.innerHTML = '<div class="msg ok">✓ Message sent to organizer successfully.</div>';
+    contactMsg.innerHTML = '<div class="msg ok">Message sent to organizer successfully.</div>';
     e.target.reset();
     setTimeout(() => { contactMsg.innerHTML = ''; }, 4000);
     toast({ type: 'ok', title: 'Message sent', desc: 'Your message has been delivered to the organizer.' });
@@ -849,7 +849,7 @@
     if (!list) return;
     const sorted = [...comments].sort((a, b) => b.score - a.score || new Date(b.time) - new Date(a.time));
     if (sorted.length === 0) {
-      list.innerHTML = '<div class="empty-state" style="padding:28px 16px;text-align:center"><span class="emoji" style="font-size:2.5rem">💬</span><h3 style="font-size:1.1rem">No comments yet</h3><p class="small">Be the first to share an update about the event.</p></div>';
+      list.innerHTML = '<div class="empty-state" style="padding:28px 16px;text-align:center"><h3 style="font-size:1.1rem">No comments yet</h3><p class="small">Be the first to share an update about the event.</p></div>';
       return;
     }
     list.innerHTML = sorted.map(c => {
