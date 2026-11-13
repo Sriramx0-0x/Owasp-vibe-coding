@@ -305,7 +305,7 @@ input, select, textarea { font: inherit; }
 /* Tables */
 .table-wrap { overflow-x: auto; padding: 0 24px 26px 24px; }
 table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-th { text-align: left; color: var(--muted); font-weight: 700; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.6px; padding: 16px 12px; border-bottom: 2px solid var(--line); background: #fafafa; }
+th { text-align: left; color: var(--muted); font-weight: 700; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.6px; padding: 16px 12px; border-bottom: 2px solid var(--line); background: rgba(255,255,255,0.03) !important; }
 td { padding: 16px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
 tr:last-child td { border-bottom: none; }
 tr:hover td { background: #f8fafc; }
@@ -1890,7 +1890,6 @@ table,
 .stat-card,
 .btn {
   transform: translateZ(0);
-  will-change: auto;
 }
 
 .card,
@@ -1904,29 +1903,18 @@ table,
   -webkit-backface-visibility: hidden;
 }
 
-/* Prevent layout thrashing on hover */
-.card:hover {
-  will-change: transform, box-shadow, border-color;
+/* Table headers - explicit transparent background to prevent white flicker */
+table th,
+.table-wrap th,
+.card .table-wrap th {
+  background: transparent !important;
+  color: #cbd5e1 !important;
+  border-color: rgba(255,255,255,0.1) !important;
 }
 
-/* Smooth but not flickering transitions */
-* {
-  transition-duration: 0.2s;
-}
-
-.reveal {
-  opacity: 1;
-  transform: none;
-}
-
-.reveal.visible {
-  opacity: 1;
-  transform: none;
-}
-
-.view.reveal.visible {
-  opacity: 1;
-  transform: none;
-  display: block !important;
+.card .table-wrap tr td:first-child {
+  color: #ffffff !important;
+  font-weight: 900 !important;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8) !important;
 }
 
