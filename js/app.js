@@ -200,6 +200,7 @@
   function renderDashboard() {
     const total = shifts.length;
     const signedUp = shifts.reduce((a, s) => a + s.volunteers.length, 0);
+    const checkedInCount = shifts.reduce((a, s) => a + s.volunteers.filter(v => v.checkedIn).length, 0);
     let filled = 0, vacant = 0, understaffed = 0;
     shifts.forEach(s => { const st = shiftStatus(s); if (st === 'filled') filled++; else if (st === 'vacant') vacant++; else understaffed++; });
 
@@ -209,11 +210,11 @@
     document.getElementById('statVacant').textContent = vacant;
     document.getElementById('statUnderstaffed').textContent = understaffed;
     document.getElementById('miniTotal').textContent = total;
-    document.getElementById('miniSigned').textContent = signedUp;
-    document.getElementById('liveCount').textContent = signedUp;
+    document.getElementById('miniSigned').textContent = checkedInCount;
+    document.getElementById('liveCount').textContent = checkedInCount;
     const liveCountEl = document.getElementById('liveCount');
     const btn = document.getElementById('badgeToggle');
-    if (btn) btn.querySelector('#liveCount').textContent = signedUp;
+    if (btn) btn.querySelector('#liveCount').textContent = checkedInCount;
     renderBadgeMenu();
 
     const totalCap = shifts.reduce((a, s) => a + s.required, 0) || 1;
