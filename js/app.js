@@ -17,6 +17,8 @@
   let comments = [];
   let currentFilter = 'all';
   let calDate = new Date();
+  let viewOrder = ['dashboard', 'shifts', 'signup', 'checkin', 'checkout', 'settings', 'calendar', 'comments'];
+  let currentViewIndex = viewOrder.indexOf('dashboard');
 
   function load() {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -160,11 +162,22 @@
   };
 
   function showView(id) {
-    views.forEach(v => { v.style.display = 'none'; v.classList.remove('visible'); });
+    const newIndex = viewOrder.indexOf(id);
+    let direction = 'none';
+    if (newIndex !== -1 && currentViewIndex !== newIndex) {
+      direction = newIndex > currentViewIndex ? 'right' : 'left';
+    }
+    if (newIndex !== -1) currentViewIndex = newIndex;
+
+    views.forEach(v => { v.style.display = 'none'; v.classList.remove('visible', 'slide-in-right', 'slide-in-left', 'slide-out-right', 'slide-out-left'); });
     const target = document.getElementById('view-' + id);
     if (target) {
       target.style.display = 'block';
-      requestAnimationFrame(() => target.classList.add('visible'));
+      requestAnimationFrame(() => {
+        target.classList.add('visible');
+        if (direction === 'right') target.classList.add('slide-in-right');
+        if (direction === 'left') target.classList.add('slide-in-left');
+      });
     }
     navItems.forEach(n => n.classList.toggle('active', n.getAttribute('data-view') === id));
     const [t, s] = titles[id] || titles.dashboard;
