@@ -491,7 +491,8 @@
     const checkoutTime = new Date();
     v.checkedOutAt = checkoutTime.toISOString();
     save();
-    checkinShiftSelect.dispatchEvent(new Event('change'));
+    try { checkinShiftSelect.dispatchEvent(new Event('change')); } catch (e) {}
+    try { checkoutShiftSelect.dispatchEvent(new Event('change')); } catch (e) {}
     renderDashboard(); renderShifts();
     const timeStr = checkoutTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     toast({ type: 'info', title: 'Checked out', desc: escapeHtml(v.name) + ' has checked out from "' + escapeHtml(shift.role) + '" at ' + timeStr + '.' });
