@@ -835,8 +835,12 @@
 
   document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+    const key = e.key;
     const map = { '1': 'dashboard', '2': 'shifts', '3': 'signup', '4': 'checkin', '5': 'checkout', '6': 'settings', '7': 'calendar', '8': 'comments' };
-    if (map[e.key]) showView(map[e.key]);
+    if (map[key]) {
+      e.preventDefault();
+      showView(map[key]);
+    }
   });
 
   load();
