@@ -1,29 +1,14 @@
-/* VolunteerHub — MVP Application Logic */
+/* VolunteerHub — MVP Application Logic (Refined UI/UX) */
 (function () {
   const STORAGE_KEY = 'volunteerhub_shifts_v1';
 
   /* ---------- Demo seed data ---------- */
   const SEED_SHIFTS = [
-    {
-      id: 's1', role: 'Registration Desk', date: '2026-11-15',
-      startTime: '08:00', endTime: '12:00', location: 'Main Lobby - Hall A', required: 4, volunteers: []
-    },
-    {
-      id: 's2', role: 'Tech Support', date: '2026-11-15',
-      startTime: '10:00', endTime: '14:00', location: 'Workshop Room B', required: 3, volunteers: []
-    },
-    {
-      id: 's3', role: 'Mentor Guide', date: '2026-11-15',
-      startTime: '13:00', endTime: '17:00', location: 'Mentor Lounge', required: 5, volunteers: []
-    },
-    {
-      id: 's4', role: 'Catering Assistant', date: '2026-11-15',
-      startTime: '11:00', endTime: '15:00', location: 'Cafeteria', required: 2, volunteers: []
-    },
-    {
-      id: 's5', role: 'Cleanup Crew', date: '2026-11-15',
-      startTime: '17:00', endTime: '20:00', location: 'Entire Venue', required: 6, volunteers: []
-    }
+    { id: 's1', role: 'Registration Desk', date: '2026-11-15', startTime: '08:00', endTime: '12:00', location: 'Main Lobby - Hall A', required: 4, volunteers: [] },
+    { id: 's2', role: 'Tech Support', date: '2026-11-15', startTime: '10:00', endTime: '14:00', location: 'Workshop Room B', required: 3, volunteers: [] },
+    { id: 's3', role: 'Mentor Guide', date: '2026-11-15', startTime: '13:00', endTime: '17:00', location: 'Mentor Lounge', required: 5, volunteers: [] },
+    { id: 's4', role: 'Catering Assistant', date: '2026-11-15', startTime: '11:00', endTime: '15:00', location: 'Cafeteria', required: 2, volunteers: [] },
+    { id: 's5', role: 'Cleanup Crew', date: '2026-11-15', startTime: '17:00', endTime: '20:00', location: 'Entire Venue', required: 6, volunteers: [] }
   ];
 
   let shifts = [];
@@ -57,26 +42,125 @@
     return 'vacant';
   }
 
-  /* ---------- Navigation ---------- */
+  /* ---------- Toast notifications ---------- */
+  const toastContainer = (() => {
+    let el = document.getElementById('toastContainer');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'toastContainer';
+      el.className = 'toast-container';
+      document.body.appendChild(el);
+    }
+    return el;
+  })();
+
+  function toast({ type = 'info', title, desc, duration = 4000 }) {
+    const id = 't' + Date.now() + Math.random().toString(36).slice(2, 6);
+    const el = document.createElement('div');
+    el.className = 'toast ' + type;
+    el.id = id;
+    const icons = { ok: '✓', err: '✕', info: '!' };
+    el.innerHTML = `
+      <span class="toast-icon">${icons[type]}</span>
+      <div class="toast-body">
+        <div class="toast-title">${escapeHtml(title)}</div>
+        ${desc ? '<div class="toast-desc">' + escapeHtml(desc) + '</div>' : ''}
+      </div>
+      <span class="toast close-btn" onclick="appCloseToast('${id}')">✕</span>
+    `;
+    toastContainer.appendChild(el);
+    setTimeout(() => appCloseToast(id), duration);
+    return id;
+  }
+
+  window.appCloseToast = function (id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.add('exit');
+    setTimeout(() => { if (el.parentElement) el.parentElement.removeChild(el); }, 300);
+  };
+
+  /* ---------- Sidebar: collapse + resize ============ */
+  const sidebar = document.getElementById('sidebar');
+  const resizeHandle = document.getElementById('sidebarResize');
+  const menuToggle = document.getElementById('menuToggle');
   const navItems = document.querySelectorAll('.nav-item');
+
+  let isResizing = false;
+  let sidebarCollapsed = false;
+
+  function toggleSidebar() {
+    sidebarCollapsed = !sidebarCollapsed;
+    sidebar.classList.toggle('collapsed', sidebarCollapsed);
+    // mobile overlay behavior
+    if (window.innerWidth > 900) return;
+    sidebar.classList.toggle('open', sidebarCollapsed);
+  }
+
+  // brand click collapses on desktop
+  document.querySelector('.brand').addEventListener('click', (e) => {
+    if (window.innerWidth > 900) toggleSidebar();
+  });
+
+  menuToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    sidebar.classList.toggle('open');
+  });
+
+  // close sidebar when clicking a nav link on mobile
+  navItems.forEach(n => {
+    n.addEventListener('click', () => {
+      if (window.innerWidth <= 900) sidebar.classList.remove('open');
+    });
+  });
+
+  // desktop resize drag
+  resizeHandle.addEventListener('mousedown', (e) => {
+    isResizing = true;
+    document.body.style.cursor = 'ew-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isResizing) return;
+    const newWidth = e.clientX;
+    const min = 72;
+    const max = 420;
+    const width = Math.min(Math.max(newWidth, min), max);
+    document.documentElement.style.setProperty('--sidebar-width', width + 'px');
+  });
+
+  document.addEventListener('mouseup', () => {
+    isResizing = false;
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  });
+
+  /* ---------- Navigation ---------- */
   const views = document.querySelectorAll('.view');
   const pageTitle = document.getElementById('pageTitle');
-  const menuToggle = document.getElementById('menuToggle');
-  const sidebar = document.getElementById('sidebar');
 
   function showView(id) {
-    views.forEach(v => v.style.display = 'none');
+    views.forEach(v => {
+      v.style.display = 'none';
+      v.classList.remove('visible');
+    });
     const target = document.getElementById('view-' + id);
-    if (target) target.style.display = 'block';
+    if (target) {
+      target.style.display = 'block';
+      // trigger reveal animation
+      requestAnimationFrame(() => target.classList.add('visible'));
+    }
     navItems.forEach(n => {
       n.classList.toggle('active', n.getAttribute('data-view') === id);
     });
     const titles = {
-      dashboard: 'Dashboard', shifts: 'Role Shifts',
+      dashboard: 'Overview', shifts: 'Role Shifts',
       signup: 'Volunteer Sign Up', checkin: 'Check In', settings: 'Data & Reset'
     };
-    pageTitle.textContent = titles[id] || 'Dashboard';
-    if (sidebar.classList.contains('open')) sidebar.classList.remove('open');
+    pageTitle.textContent = titles[id] || 'Overview';
+    if (sidebar.classList.contains('open') && window.innerWidth <= 900) sidebar.classList.remove('open');
 
     if (id === 'dashboard') renderDashboard();
     if (id === 'shifts') renderShifts();
@@ -91,9 +175,20 @@
     });
   });
 
-  menuToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+  document.getElementById('storageInfo' && 'storageInfo') && null; // no-op safety
 
-  document.getElementById('storageInfo').textContent = 'localStorage';
+  /* ---------- Scroll reveal for all sections ============ */
+  function observeReveals() {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  }
 
   /* ---------- Dashboard ---------- */
   function renderDashboard() {
@@ -120,12 +215,13 @@
       '<th>Signed Up</th><th>Required</th><th>Status</th></tr></thead><tbody>';
 
     if (shifts.length === 0) {
-      html += '<tr><td colspan="7" class="empty-state">No shifts yet. Add some under Role Shifts.</td></tr>';
+      html += '<tr><td colspan="7" class="empty-state"><span class="emoji">📭</span><h3>No shifts yet</h3><p class="small">Create your first role shift under Role Shifts.</p></td></tr>';
     } else {
       shifts.forEach(s => {
         const st = shiftStatus(s);
         const cls = st === 'filled' ? 'filled' : st === 'vacant' ? 'vacant' : 'understaffed';
-        const label = st === 'filled' ? '✅ Filled' : st === 'vacant' ? '⚪ Vacant' : '⚠️ Understaffed';
+        const label = st === 'filled' ? 'Filled' : st === 'vacant' ? 'Vacant' : 'Understaffed';
+        const icon = st === 'filled' ? '●' : st === 'vacant' ? '○' : '⚠';
         html += '<tr>' +
           '<td><strong>' + escapeHtml(s.role) + '</strong></td>' +
           '<td>' + fmtDate(s.date) + '</td>' +
@@ -133,7 +229,7 @@
           '<td class="small">' + escapeHtml(s.location) + '</td>' +
           '<td>' + s.volunteers.length + '</td>' +
           '<td>' + s.required + '</td>' +
-          '<td><span class="status ' + cls + '">' + label + '</span></td>' +
+          '<td><span class="status ' + cls + '"><span class="dot"></span>' + icon + ' ' + label + '</span></td>' +
           '</tr>';
       });
     }
@@ -149,25 +245,25 @@
       '<th>Signed / Required</th><th>Status</th><th>Volunteers</th><th>Actions</th></tr></thead><tbody>';
 
     if (shifts.length === 0) {
-      html += '<tr><td colspan="8" class="empty-state">No shifts yet. Click "Add Shift" to create one.</td></tr>';
+      html += '<tr><td colspan="8" class="empty-state"><span class="emoji">📭</span><h3>No shifts yet</h3><p class="small">Click "+ Add Shift" to create your first role.</p></td></tr>';
     } else {
       shifts.forEach(s => {
         const st = shiftStatus(s);
         const cls = st === 'filled' ? 'filled' : st === 'vacant' ? 'vacant' : 'understaffed';
         const label = st === 'filled' ? 'Filled' : st === 'vacant' ? 'Vacant' : 'Understaffed';
         const vols = s.volunteers.length ? s.volunteers.map(v =>
-          '<span class="vol-chip ' + (v.checkedIn ? 'checked' : '') + '">' +
-          '<span class="dot"></span>' + escapeHtml(v.name) + (v.checkedIn ? ' ✅' : '') + '</span>').join(' ') :
-          '<span class="small">—</span>';
+          '<span class="vol-chip ' + (v.checkedIn ? 'checked' : '') + '" title="' + escapeHtml(v.email) + '">' +
+          '<span class="dot"></span>' + escapeHtml(v.name) + (v.checkedIn ? ' ✓' : '') + '</span>').join(' ') :
+          '<span class="small">— no volunteers yet —</span>';
         html += '<tr>' +
           '<td><strong>' + escapeHtml(s.role) + '</strong></td>' +
           '<td>' + fmtDate(s.date) + '</td>' +
           '<td>' + fmtTime(s.startTime) + ' – ' + fmtTime(s.endTime) + '</td>' +
           '<td class="small">' + escapeHtml(s.location) + '</td>' +
-          '<td>' + s.volunteers.length + ' / ' + s.required + '</td>' +
-          '<td><span class="status ' + cls + '">' + label + '</span></td>' +
+          '<td><strong>' + s.volunteers.length + '</strong> / ' + s.required + '</td>' +
+          '<td><span class="status ' + cls + '"><span class="dot"></span>' + label + '</span></td>' +
           '<td>' + vols + '</td>' +
-          '<td><button class="btn btn-danger btn-sm" onclick="appDeleteShift(\'' + s.id + '\')">Delete</button></td>' +
+          '<td><button class="btn btn-danger btn-sm" onclick="appDeleteShift(\'' + s.id + '\')" title="Delete shift"><span>🗑</span> Delete</button></td>' +
           '</tr>';
       });
     }
@@ -176,13 +272,14 @@
   }
 
   window.appDeleteShift = function (id) {
-    if (!confirm('Delete this shift? Volunteers signed up will be removed.')) return;
+    if (!confirm('Delete this shift? All volunteers signed up will be removed.')) return;
     shifts = shifts.filter(s => s.id !== id);
     save();
     renderShifts();
     renderDashboard();
     renderSignup();
     renderCheckIn();
+    toast({ type: 'info', title: 'Shift deleted', desc: 'The role shift has been removed.' });
   };
 
   /* Add shift modal */
@@ -193,13 +290,14 @@
   const cancelShift = document.getElementById('cancelShift');
   const addShiftForm = document.getElementById('addShiftForm');
 
-  function openModal() { addShiftModal.style.display = 'block'; }
-  function closeModal() { addShiftModal.style.display = 'none'; addShiftForm.reset(); }
+  function openModal() { addShiftModal.style.display = 'block'; document.body.style.overflow = 'hidden'; }
+  function closeModal() { addShiftModal.style.display = 'none'; document.body.style.overflow = ''; addShiftForm.reset(); }
 
   openAddShift.addEventListener('click', openModal);
   closeShift.addEventListener('click', closeModal);
   cancelShift.addEventListener('click', closeModal);
   shiftBackdrop.addEventListener('click', closeModal);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && addShiftModal.style.display === 'block') closeModal(); });
 
   addShiftForm.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -212,7 +310,11 @@
     const required = parseInt(form.get('required'), 10) || 1;
 
     if (!role || !date || !startTime || !endTime || !location) {
-      alert('Please fill in all fields.');
+      toast({ type: 'err', title: 'Incomplete form', desc: 'Please fill in all fields before creating the shift.' });
+      return;
+    }
+    if (new Date(date + 'T' + endTime) <= new Date(date + 'T' + startTime)) {
+      toast({ type: 'err', title: 'Invalid time', desc: 'End time must be after start time.' });
       return;
     }
 
@@ -227,6 +329,7 @@
     renderDashboard();
     renderSignup();
     renderCheckIn();
+    toast({ type: 'ok', title: 'Shift created', desc: '"' + escapeHtml(role) + '" is now open for sign-ups.' });
   });
 
   /* ---------- Volunteer Sign Up ---------- */
@@ -243,11 +346,9 @@
         sel.appendChild(o);
       }
     });
-    document.getElementById('signupMsg').innerHTML = '';
   }
 
   const signupForm = document.getElementById('signupForm');
-  const signupMsg = document.getElementById('signupMsg');
   signupForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const form = new FormData(signupForm);
@@ -256,23 +357,29 @@
     const shiftId = form.get('shiftId');
 
     if (!name || !email || !shiftId) {
-      showMsg(signupMsg, 'Please fill in all fields.', 'err'); return;
+      toast({ type: 'err', title: 'Missing details', desc: 'Please enter your name, email, and select a shift.' });
+      return;
+    }
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRe.test(email)) {
+      toast({ type: 'err', title: 'Invalid email', desc: 'Please enter a valid email address.' });
+      return;
     }
 
     const shift = shifts.find(s => s.id === shiftId);
-    if (!shift) { showMsg(signupMsg, 'Shift not found.', 'err'); return; }
+    if (!shift) { toast({ type: 'err', title: 'Shift not found' }); return; }
     if (shift.volunteers.length >= shift.required) {
-      showMsg(signupMsg, 'This shift is already full.', 'err'); renderSignup(); return;
+      toast({ type: 'err', title: 'Shift full', desc: 'This shift already has enough volunteers.' }); renderSignup(); return;
     }
     if (shift.volunteers.some(v => v.email.toLowerCase() === email.toLowerCase())) {
-      showMsg(signupMsg, email + ' is already signed up for this shift.', 'err'); return;
+      toast({ type: 'err', title: 'Already signed up', desc: email + ' is already signed up for this shift.' }); return;
     }
 
     shift.volunteers.push({ id: 'v' + Date.now(), name, email, checkedIn: false, checkedInAt: null });
     save();
     signupForm.reset();
     renderSignup();
-    showMsg(signupMsg, '✅ ' + escapeHtml(name) + ' signed up for "' + escapeHtml(shift.role) + '".', 'ok');
+    toast({ type: 'ok', title: 'Signed up', desc: escapeHtml(name) + ' is now registered for "' + escapeHtml(shift.role) + '".' });
     renderDashboard();
     renderShifts();
     renderCheckIn();
@@ -291,12 +398,10 @@
       }
     });
     document.getElementById('checkinList').innerHTML = '';
-    document.getElementById('checkinMsg').innerHTML = '';
   }
 
   const checkinShiftSelect = document.getElementById('checkinShiftSelect');
   const checkinList = document.getElementById('checkinList');
-  const checkinMsg = document.getElementById('checkinMsg');
 
   checkinShiftSelect.addEventListener('change', () => {
     const id = checkinShiftSelect.value;
@@ -304,29 +409,31 @@
     const shift = shifts.find(s => s.id === id);
     if (!shift) return;
 
+    let anyPending = false;
     let html = '<table><thead><tr>' +
       '<th>Volunteer</th><th>Email</th><th>Status</th><th>Action</th></tr></thead><tbody>';
-    let anyPending = false;
     shift.volunteers.forEach(v => {
       anyPending = anyPending || !v.checkedIn;
       html += '<tr>' +
         '<td><strong>' + escapeHtml(v.name) + '</strong></td>' +
         '<td class="small">' + escapeHtml(v.email) + '</td>' +
-        '<td><span class="status ' + (v.checkedIn ? 'checked' : 'pending') + '">' +
-        (v.checkedIn ? '✅ Checked In' : '⏳ Pending') + '</span></td>' +
+        '<td><span class="status ' + (v.checkedIn ? 'checked' : 'pending') + '"><span class="dot"></span>' +
+        (v.checkedIn ? '✓ Checked In' : '○ Pending') + '</span></td>' +
         '<td>' +
         (!v.checkedIn
-          ? '<button class="btn btn-primary btn-sm" onclick="appCheckIn(\'' + id + '\', \'' + v.id + '\')">Check In</button>'
-          : '<span class="small">—</span>') +
+          ? '<button class="btn btn-primary btn-sm" onclick="appCheckIn(\'' + id + '\', \'' + v.id + '\')" title="Check in volunteer"><span>✓</span> Check In</button>'
+          : '<span class="small pill ok">Done</span>') +
         '</td>' +
         '</tr>';
     });
     html += '</tbody></table>';
     checkinList.innerHTML = html;
     if (!anyPending) {
-      checkinMsg.innerHTML = '<div class="msg ok">All volunteers for this shift are checked in.</div>';
-    } else {
-      checkinMsg.innerHTML = '';
+      const celeb = document.createElement('div');
+      celeb.className = 'empty-state';
+      celeb.innerHTML = '<span class="emoji">🎉</span><h3>All checked in</h3><p class="small">Every volunteer for this shift is present.</p>';
+      checkinList.innerHTML = '';
+      checkinList.appendChild(celeb);
     }
   });
 
@@ -340,23 +447,15 @@
     checkinShiftSelect.dispatchEvent(new Event('change'));
     renderDashboard();
     renderShifts();
-    showMsg(checkinMsg, '✅ ' + escapeHtml(v.name) + ' checked in.', 'ok');
+    toast({ type: 'ok', title: 'Checked in', desc: escapeHtml(v.name) + ' is now present for "' + escapeHtml(shift.role) + '".' });
   };
 
   /* ---------- Data & Reset ---------- */
-  function showMsg(el, text, type) {
-    el.innerHTML = '<div class="msg ' + type + '">' + text + '</div>';
-    setTimeout(() => { el.innerHTML = ''; }, 5000);
-  }
-
   document.getElementById('btnSeed').addEventListener('click', () => {
     shifts = JSON.parse(JSON.stringify(SEED_SHIFTS));
     save();
     renderDashboard(); renderShifts(); renderSignup(); renderCheckIn();
-    const m = document.getElementById('settingsMsg');
-    m.className = 'alert okbg'; m.style.display = 'block';
-    m.textContent = 'Demo data seeded.';
-    setTimeout(() => { m.style.display = 'none'; }, 3000);
+    toast({ type: 'ok', title: 'Demo data seeded', desc: 'Sample shifts loaded.' });
   });
 
   document.getElementById('btnReset').addEventListener('click', () => {
@@ -364,9 +463,7 @@
     shifts = [];
     save();
     renderDashboard(); renderShifts(); renderSignup(); renderCheckIn();
-    const m = document.getElementById('settingsMsg');
-    m.className = 'alert dangerbg'; m.style.display = 'block';
-    m.textContent = 'All data reset.';
+    toast({ type: 'info', title: 'Data reset', desc: 'All shifts and volunteers have been cleared.' });
   });
 
   document.getElementById('btnExport').addEventListener('click', () => {
@@ -376,9 +473,11 @@
     const a = document.createElement('a');
     a.href = url; a.download = 'volunteerhub-data.json'; a.click();
     URL.revokeObjectURL(url);
+    toast({ type: 'info', title: 'Exported', desc: 'volunteerhub-data.json saved to your downloads.' });
   });
 
   /* ---------- Boot ---------- */
   load();
   showView('dashboard');
+  observeReveals();
 })();

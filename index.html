@@ -4,43 +4,63 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VolunteerHub — Event Volunteer Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
+  <!-- Animated abstract background layer -->
+  <div class="bg-art">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+    <div class="blob blob-4"></div>
+    <div class="blob blob-5"></div>
+  </div>
+
   <aside class="sidebar" id="sidebar">
+    <div class="sidebar-resize-handle" id="sidebarResize"></div>
     <div class="brand">
-      <span class="brand-mark">V</span>
+      <div class="brand-mark">V</div>
       <div>
         <div class="brand-name">VolunteerHub</div>
-        <div class="brand-tag">Event Volunteer Mgmt</div>
+        <div class="brand-tag">Event Volunteer Management</div>
       </div>
     </div>
     <nav class="nav">
       <a href="#dashboard" class="nav-item active" data-view="dashboard" id="nav-dashboard">
-        <span class="icon">📊</span> Dashboard
+        <span class="icon">▲</span> Dashboard
       </a>
       <a href="#shifts" class="nav-item" data-view="shifts" id="nav-shifts">
-        <span class="icon">📋</span> Role Shifts
+        <span class="icon">◆</span> Role Shifts
       </a>
       <a href="#signup" class="nav-item" data-view="signup" id="nav-signup">
-        <span class="icon">📝</span> Volunteer Sign Up
+        <span class="icon">○</span> Volunteer Sign Up
       </a>
       <a href="#checkin" class="nav-item" data-view="checkin" id="nav-checkin">
-        <span class="icon">✅</span> Check In
+        <span class="icon">▣</span> Check In
       </a>
       <a href="#settings" class="nav-item" data-view="settings" id="nav-settings">
-        <span class="icon">⚙️</span> Data & Reset
+        <span class="icon">⚙</span> Data & Reset
       </a>
     </nav>
     <div class="nav-footer">
-      <small>MVP • Desktop First</small>
-      <small id="storageInfo">localStorage</small>
+      <div class="footer-row">
+        <span class="footer-label">Platform</span>
+        <span class="footer-value">localStorage</span>
+      </div>
+      <div class="footer-divider"></div>
+      <div class="footer-row">
+        <span class="footer-label">Status</span>
+        <span class="footer-value">Online</span>
+      </div>
     </div>
   </aside>
 
   <div class="wrapper">
     <header class="topbar">
-      <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">☰</button>
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">☰</button>
       <h1 class="page-title" id="pageTitle">Dashboard</h1>
       <div class="topbar-actions">
         <span class="badge" id="liveCount">0 volunteers</span>
@@ -49,59 +69,96 @@
 
     <main class="page" id="app">
       <!-- DASHBOARD -->
-      <section class="view" id="view-dashboard">
-        <div class="stat-grid">
+      <section class="view reveal" id="view-dashboard">
+        <div class="section-head reveal">
+          <h2 class="section-title">Overview</h2>
+          <p class="section-sub">Staffing health across all role shifts at a glance.</p>
+        </div>
+
+        <div class="stat-grid reveal">
           <div class="stat-card">
-            <div class="stat-label">Total Shifts</div>
+            <div class="stat-meta">
+              <span class="stat-label">Total Shifts</span>
+              <span class="stat-icon">▲</span>
+            </div>
             <div class="stat-value" id="statTotalShifts">0</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Signed Up</div>
+            <div class="stat-meta">
+              <span class="stat-label">Signed Up</span>
+              <span class="stat-icon">○</span>
+            </div>
             <div class="stat-value" id="statSignedUp">0</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Filled Roles</div>
+            <div class="stat-meta">
+              <span class="stat-label">Filled Roles</span>
+              <span class="stat-icon">●</span>
+            </div>
             <div class="stat-value" id="statFilled">0</div>
           </div>
-          <div class="stat-card">
-            <div class="stat-label">Vacant Roles</div>
+          <div class="stat-card stat-warn">
+            <div class="stat-meta">
+              <span class="stat-label">Vacant Roles</span>
+              <span class="stat-icon">◇</span>
+            </div>
             <div class="stat-value" id="statVacant">0</div>
           </div>
-          <div class="stat-card warn">
-            <div class="stat-label">Understaffed</div>
+          <div class="stat-card stat-danger">
+            <div class="stat-meta">
+              <span class="stat-label">Understaffed</span>
+              <span class="stat-icon">⚠</span>
+            </div>
             <div class="stat-value" id="statUnderstaffed">0</div>
           </div>
         </div>
 
-        <div class="card">
+        <div class="card reveal">
           <div class="card-header">
-            <h2>Role Status Overview</h2>
-            <span class="pill ok">✅ Filled</span>
-            <span class="pill empty">⚪ Vacant</span>
-            <span class="pill warn">⚠️ Understaffed</span>
+            <div class="card-title-group">
+              <h2 class="card-title">Role Status Board</h2>
+              <p class="card-sub">Filled roles are fully staffed; understaffed roles need attention.</p>
+            </div>
+            <div class="legend">
+              <span class="pill ok">✓ Filled</span>
+              <span class="pill warn">⚠ Understaffed</span>
+              <span class="pill empty">○ Vacant</span>
+            </div>
           </div>
           <div class="table-wrap" id="statusTable"></div>
         </div>
       </section>
 
       <!-- ROLE SHIFTS -->
-      <section class="view" id="view-shifts" style="display:none">
-        <div class="card">
+      <section class="view reveal" id="view-shifts" style="display:none">
+        <div class="section-head reveal">
+          <h2 class="section-title">Role Shifts</h2>
+          <p class="section-sub">Define roles, timings, locations, and required headcount.</p>
+        </div>
+
+        <div class="card reveal">
           <div class="card-header">
-            <h2>Role Shifts — Timings & Location</h2>
+            <div class="card-title-group">
+              <h2 class="card-title">Active Shifts</h2>
+              <p class="card-sub">Create new shifts or remove existing ones below.</p>
+            </div>
             <button class="btn btn-primary" id="openAddShift">+ Add Shift</button>
           </div>
           <div class="table-wrap" id="shiftsTable"></div>
         </div>
+
         <!-- Add Shift Modal -->
         <div class="modal" id="addShiftModal">
           <div class="modal-backdrop" id="shiftBackdrop"></div>
-          <div class="modal-panel">
+          <div class="modal-panel reveal">
             <div class="modal-header">
-              <h3>Create a Role Shift</h3>
+              <div class="modal-title-group">
+                <h3 class="modal-title">Create Role Shift</h3>
+                <p class="modal-sub">Set timings, location, and required volunteers.</p>
+              </div>
               <button class="btn-close" id="closeShift">✕</button>
             </div>
-            <form id="addShiftForm" class="form">
+            <form id="addShiftForm" class="form reveal">
               <div class="form-group">
                 <label>Role / Position</label>
                 <input type="text" name="role" required placeholder="e.g. Registration Desk" />
@@ -138,13 +195,20 @@
       </section>
 
       <!-- VOLUNTEER SIGN UP -->
-      <section class="view" id="view-signup" style="display:none">
-        <div class="card">
+      <section class="view reveal" id="view-signup" style="display:none">
+        <div class="section-head reveal">
+          <h2 class="section-title">Volunteer Sign Up</h2>
+          <p class="section-sub">Register for an open shift. Only shifts with available spots appear below.</p>
+        </div>
+
+        <div class="card reveal">
           <div class="card-header">
-            <h2>Volunteer Sign Up</h2>
-            <p class="sub">Sign up for an open shift. Spots are shown per role.</p>
+            <div class="card-title-group">
+              <h2 class="card-title">Sign Up Form</h2>
+              <p class="card-sub">Enter your details and select a shift to join.</p>
+            </div>
           </div>
-          <form id="signupForm" class="form">
+          <form id="signupForm" class="form reveal">
             <div class="form-group">
               <label>Your Name</label>
               <input type="text" name="name" required placeholder="e.g. Alex Rivera" />
@@ -163,45 +227,57 @@
               <button type="submit" class="btn btn-primary">Sign Up</button>
             </div>
           </form>
-          <div id="signupMsg" class="msg"></div>
         </div>
       </section>
 
       <!-- CHECK IN -->
-      <section class="view" id="view-checkin" style="display:none">
-        <div class="card">
+      <section class="view reveal" id="view-checkin" style="display:none">
+        <div class="section-head reveal">
+          <h2 class="section-title">Check In</h2>
+          <p class="section-sub">Mark signed-up volunteers as present at the event.</p>
+        </div>
+
+        <div class="card reveal">
           <div class="card-header">
-            <h2>Check In</h2>
-            <p class="sub">Mark a signed-up volunteer as checked in for the event.</p>
+            <div class="card-title-group">
+              <h2 class="card-title">Attendance</h2>
+              <p class="card-sub">Choose a shift, then check in volunteers individually.</p>
+            </div>
           </div>
-          <div class="form-group" style="max-width:420px">
+          <div class="form-group compact reveal" style="max-width:420px">
             <label>Select Shift</label>
             <select id="checkinShiftSelect">
               <option value="">— Choose a shift —</option>
             </select>
           </div>
-          <div id="checkinList" class="table-wrap"></div>
-          <div id="checkinMsg" class="msg"></div>
+          <div id="checkinList" class="table-wrap reveal"></div>
         </div>
       </section>
 
       <!-- DATA & RESET -->
-      <section class="view" id="view-settings" style="display:none">
-        <div class="card">
+      <section class="view reveal" id="view-settings" style="display:none">
+        <div class="section-head reveal">
+          <h2 class="section-title">Data & Reset</h2>
+          <p class="section-sub">Data persists in browser storage. Export or reset as needed.</p>
+        </div>
+
+        <div class="card reveal">
           <div class="card-header">
-            <h2>Data & Reset</h2>
-            <p class="sub">Data persists in browser localStorage so your demo survives refreshes.</p>
+            <div class="card-title-group">
+              <h2 class="card-title">Controls</h2>
+              <p class="card-sub">Seed sample data, reset everything, or export a JSON backup.</p>
+            </div>
           </div>
-          <div class="form-actions" style="gap:10px">
+          <div class="form-actions reveal" style="gap:10px">
             <button class="btn btn-secondary" id="btnSeed">Seed Demo Data</button>
-            <button class="btn btn-danger" id="btnReset">Reset All Data</button>
             <button class="btn btn-outline" id="btnExport">Export JSON</button>
+            <button class="btn btn-danger" id="btnReset">Reset All Data</button>
           </div>
-          <div class="alert" id="settingsMsg" style="display:none;margin-top:12px"></div>
         </div>
       </section>
     </main>
   </div>
+
   <script src="js/app.js"></script>
 </body>
 </html>
